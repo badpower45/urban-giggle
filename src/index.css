@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #1a2b3c;
+    --color-primary-hover: #243b50;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #c5a059;
+    --color-secondary-hover: #b18d4b;
+    --color-secondary-foreground: #ffffff;
+    --color-tertiary: #707781;
+    --color-neutral: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-text-primary: #1a2b3c;
+    --color-text-secondary: #475569;
+    --color-success: #10b981;
+    --color-finance-fees: #202124;
+    --color-finance-paid: #00552e;
+    --color-finance-outstanding: #6b7280;
+    --color-finance-expenses: #9b4444;
+    --color-finance-net: #00843d;
+    --color-border: #e2e8f0;
+    --color-input: #e2e8f0;
+    --color-ring: #1a2b3c;
+  }
+
+  body {
+    @apply bg-neutral text-primary font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Finance text & background utility classes */
+.text-finance-paid {
+  color: #00552e;
+}
+
+.bg-finance-paid {
+  background-color: #00552e;
+}
+
+.text-finance-outstanding {
+  color: #6b7280;
+}
+
+.bg-finance-outstanding {
+  background-color: #6b7280;
+}
+
+.text-finance-net {
+  color: #00843d;
+}
+
+.bg-finance-net {
+  background-color: #00843d;
+}
+
+.text-finance-expenses {
+  color: #9b4444;
+}
+
+.bg-finance-expenses {
+  background-color: #9b4444;
+}
