@@ -1,60 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { Check, CreditCard, Sparkles, Shield, Zap, ArrowLeft } from "lucide-react";
-import { apiClient } from "../../lib/api/client";
-import { SubscriptionPlan } from "../../types";
-import { CountBadge } from "../../components/common/CountBadge";
+import React, { useState } from "react";
+import { Check, Sparkles } from "lucide-react";
+import { usePlatformStore } from "../../lib/platformStore";
 
 export const SubscriptionPage: React.FC = () => {
   const [cycle, setCycle] = useState<"monthly" | "annual">("monthly");
-  const [loading, setLoading] = useState(false);
+  const { plans, settings } = usePlatformStore();
 
-  const planDetails = [
-    {
-      id: "individual",
-      name: "المحامي الفردي",
-      monthlyPrice: "500",
-      annualPrice: "5,000",
-      description: "مثالية للمحامي المستقل الذي يبحث عن تنظيم قضاياه ومواعيده بدقة وسرعة.",
-      isCurrent: true,
-      features: [
-        "حتى 2 مستخدمين (محام ومساعد)",
-        "عدد غير محدود من القضايا والموكلين",
-        "تصدير الأجندة إلى Excel و Google Calendar",
-        "مساحة تخزين سحابي 5 جيجابايت للمستندات",
-        "تنبيهات مواعيد السقوط والاستئناف",
-      ],
-    },
-    {
-      id: "office",
-      name: "المكاتب المتوسطة",
-      monthlyPrice: "1,400",
-      annualPrice: "14,000",
-      description: "المفضلة لمكاتب المحاماة التي تضم فريق عمل ومحامين تحت التمرين ومساعدين.",
-      isPopular: true,
-      features: [
-        "حتى 10 مستخدمين وصلاحيات مخصصة",
-        "قضايا وموكلين وجلسات غير محدودة",
-        "لوحة كانبان لمتابعة مهام الفريق وتوزيعها",
-        "مساحة تخزين سحابي 50 جيجابايت للمستندات",
-        "سجل تدقيق العمليات الكامل (Audit Log)",
-        "دعم فني مخصص وسريع عبر واتساب",
-      ],
-    },
-    {
-      id: "enterprise",
-      name: "المكاتب الكبيرة والشركات",
-      monthlyPrice: "3,700",
-      annualPrice: "37,000",
-      description: "حل متكامل للمؤسسات القانونية الكبرى وشركات المحاماة متعددة الفروع.",
-      features: [
-        "حتى 30 مستخدم مع أدوار وصلاحيات غير محدودة",
-        "إدارة فروع متعددة ومخازن مستندات ضخمة",
-        "مساحة تخزين 150 جيجابايت مؤمنة ومشفرة",
-        "تقارير محاسبية ومالية متقدمة وتصدير شامل",
-        "مدير حساب مخصص وتدريب كامل للفريق",
-      ],
-    },
-  ];
+  const planDetails = plans.map((p, idx) => ({
+    id: p.id,
+    name: p.name,
+    monthlyPrice: p.monthlyPrice.toLocaleString('ar-EG'),
+    annualPrice: p.annualPrice.toLocaleString('ar-EG'),
+    description: p.description,
+    isCurrent: idx === 0,
+    isPopular: p.badge === 'الأكثر طلباً' || idx === 1,
+    features: p.features,
+  }));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 p-4 sm:p-6">
@@ -88,7 +49,7 @@ export const SubscriptionPage: React.FC = () => {
       {/* Header */}
       <div className="text-center space-y-2 max-w-xl mx-auto pt-2">
         <h1 className="font-headline text-primary text-xl sm:text-3xl font-bold">
-          باقات اشتراك نظام سياق
+          باقات اشتراك نظام {settings.systemName}
         </h1>
         <p className="text-xs sm:text-sm text-tertiary">
           اختر الخطة الملائمة لنمو مكتبك القانوني، مع إمكانية الترقية أو التعديل في أي وقت
@@ -148,7 +109,7 @@ export const SubscriptionPage: React.FC = () => {
                   {cycle === "monthly" ? plan.monthlyPrice : plan.annualPrice}
                 </span>
                 <span className="text-xs text-tertiary">
-                  ج.م. / {cycle === "monthly" ? "شهرياً" : "سنوياً"}
+                  {settings.currency} / {cycle === "monthly" ? "شهرياً" : "سنوياً"}
                 </span>
               </div>
 

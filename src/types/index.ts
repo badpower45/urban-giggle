@@ -273,3 +273,7 @@ export interface DashboardData {
   recent_tasks: Task[];
   active_cases?: Partial<Case>[];
 }
+
+export * from './ocr';
+export * from './contract';
+export * from './admin';

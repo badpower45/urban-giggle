@@ -12,6 +12,8 @@ import {
   Briefcase,
   UserPlus,
   AlertTriangle,
+  LifeBuoy,
+  ShieldCheck,
 } from "lucide-react";
 import { appStore } from "../../lib/api/store";
 import {
@@ -25,6 +27,7 @@ import {
 import { Button } from "../ui/button";
 
 import { GlobalSearchDialog } from "../common/GlobalSearchDialog";
+import { SubmitComplaintModal } from "../common/SubmitComplaintModal";
 import { Globe } from "lucide-react";
 
 interface HeaderProps {
@@ -35,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const navigate = useNavigate();
   const [storeState, setStoreState] = useState(appStore.getState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
 
   useEffect(() => {
     return appStore.subscribe(() => {
@@ -177,6 +181,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Submit Complaint or Support Ticket */}
+        <button
+          type="button"
+          onClick={() => setIsComplaintModalOpen(true)}
+          className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-amber-900 hover:bg-amber-100 text-xs font-semibold transition-colors"
+          title="تقديم شكوى أو استفسار للإدارة العليا"
+        >
+          <LifeBuoy className="w-3.5 h-3.5 text-amber-700" />
+          <span className="hidden xl:inline">الدعم والشكاوى</span>
+        </button>
+
         {/* User Profile Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -196,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-xs font-bold leading-none text-foreground">{user.full_name}</p>
@@ -212,6 +227,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               <Settings className="w-4 h-4 ml-2" />
               إعدادات المكتب
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsComplaintModalOpen(true)}>
+              <LifeBuoy className="w-4 h-4 ml-2 text-amber-600" />
+              تقديم شكوى أو استفسار
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => navigate("/super-admin")}
+              className="bg-amber-50/60 text-primary font-bold hover:bg-amber-100/80 focus:bg-amber-100"
+            >
+              <ShieldCheck className="w-4 h-4 ml-2 text-amber-600" />
+              لوحة الإدارة العليا (Super Admin)
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/login")} className="text-destructive focus:text-destructive">
               <LogOut className="w-4 h-4 ml-2" />
@@ -223,6 +250,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
     </header>
 
     <GlobalSearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+    <SubmitComplaintModal open={isComplaintModalOpen} onOpenChange={setIsComplaintModalOpen} />
   </>
 );
 };

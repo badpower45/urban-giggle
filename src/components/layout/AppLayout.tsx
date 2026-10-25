@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Logo } from "../common/Logo";
+import { OfflineBanner } from "../offline/OfflineBanner";
 
 export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,6 +32,7 @@ export const AppLayout: React.FC = () => {
     { name: "القضايا", to: "/firm/cases", icon: Briefcase },
     { name: "دليل الموكلين", to: "/firm/clients", icon: Users },
     { name: "محاضر الشرطة", to: "/firm/police-reports", icon: ShieldAlert },
+    { name: "منشئ العقود الذكية", to: "/firm/contracts", icon: FileText },
     { name: "التقويم", to: "/firm/calendar", icon: Calendar },
     { name: "رول الجلسات", to: "/firm/sessions", icon: Gavel },
     { name: "المواعيد والمدد", to: "/firm/deadlines", icon: Clock },
@@ -107,6 +109,7 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        <OfflineBanner />
         <Header onOpenMobileMenu={() => setMobileMenuOpen(true)} />
 
         <main className="flex-1 overflow-y-auto pb-20 md:pb-6 custom-scrollbar">

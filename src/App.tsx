@@ -22,9 +22,13 @@ import { FirmSettingsPage } from "./pages/settings/FirmSettingsPage";
 import { SubscriptionPage } from "./pages/settings/SubscriptionPage";
 import { FirmAuditLogPage } from "./pages/settings/FirmAuditLogPage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
+import { DocumentScannerPage } from "./pages/scanner/DocumentScannerPage";
+import { ContractBuilderPage } from "./pages/contracts/ContractBuilderPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { LandingPage } from "./pages/landing/LandingPage";
+import { SuperAdminDashboardPage } from "./pages/admin/SuperAdminDashboardPage";
 import { ToastProvider } from "./components/common/Toast";
+import { OfflineProvider } from "./lib/offline";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +43,8 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <BrowserRouter>
+        <OfflineProvider>
+          <BrowserRouter>
           <Routes>
             {/* Landing Page */}
             <Route path="/" element={<LandingPage />} />
@@ -49,6 +54,10 @@ export const App: React.FC = () => {
             {/* Public Auth */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<Navigate to="/firm/dashboard" replace />} />
+
+            {/* Super Admin & Platform Control */}
+            <Route path="/super-admin" element={<SuperAdminDashboardPage />} />
+            <Route path="/admin" element={<SuperAdminDashboardPage />} />
 
             {/* Protected Firm SaaS Application */}
             <Route path="/firm" element={<AppLayout />}>
@@ -68,6 +77,8 @@ export const App: React.FC = () => {
             <Route path="police-reports/new" element={<PoliceReportFormPage />} />
             <Route path="police-reports/:id" element={<PoliceReportDetailPage />} />
             <Route path="billing" element={<BillingReportPage />} />
+            <Route path="scanner" element={<DocumentScannerPage />} />
+            <Route path="contracts" element={<ContractBuilderPage />} />
             <Route path="settings" element={<FirmSettingsPage />} />
             <Route path="settings/subscription" element={<SubscriptionPage />} />
             <Route path="settings/audit-log" element={<FirmAuditLogPage />} />
@@ -82,6 +93,7 @@ export const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </OfflineProvider>
     </ToastProvider>
   </QueryClientProvider>
 );

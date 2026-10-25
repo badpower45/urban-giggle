@@ -13,6 +13,7 @@ import {
   Save,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { useOffline } from "../../lib/offline";
 import { ClientPicker } from "../../components/common/ClientPicker";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -51,6 +52,7 @@ export const CaseFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
+  const { isOnline, createCaseOffline } = useOffline();
 
   const [loading, setLoading] = useState(isEditing);
   const [submitting, setSubmitting] = useState(false);
@@ -122,6 +124,24 @@ export const CaseFormPage: React.FC = () => {
   const onSubmit = async (formData: CaseFormData) => {
     setSubmitting(true);
     try {
+      if (!isOnline) {
+        // Offline Mode: Save directly to local SQLite database, enqueue mutation, trigger Toast
+        await createCaseOffline({
+          title: formData.title,
+          case_number: formData.case_number,
+          client_id: formData.client_id,
+          client_name: formData.client_name,
+          court: formData.court_name,
+          circuit: formData.circuit,
+          status: formData.status,
+          fees: formData.total_fees,
+          paid_amount: formData.total_paid,
+        });
+        navigate("/firm/cases");
+        return;
+      }
+
+      // Online Mode
       if (isEditing && id) {
         await apiClient.updateCase(id, formData);
       } else {
@@ -133,11 +153,37 @@ export const CaseFormPage: React.FC = () => {
           filing_date: new Date().toISOString(),
           created_by: "01a08460-b523-7667-b6cd-7863e99c38c7",
         });
+
+        // Mirror to local SQLite for local-first reads
+        await createCaseOffline({
+          title: formData.title,
+          case_number: formData.case_number,
+          client_id: formData.client_id,
+          client_name: formData.client_name,
+          court: formData.court_name,
+          circuit: formData.circuit,
+          status: formData.status,
+          fees: formData.total_fees,
+          paid_amount: formData.total_paid,
+          synced: 1,
+        });
       }
       navigate("/firm/cases");
     } catch (err) {
-      console.error(err);
-      alert("حدث خطأ أثناء حفظ القضية");
+      console.warn("[CaseFormPage] Online save failed, persisting offline:", err);
+      // Fallback: save to SQLite and sync queue
+      await createCaseOffline({
+        title: formData.title,
+        case_number: formData.case_number,
+        client_id: formData.client_id,
+        client_name: formData.client_name,
+        court: formData.court_name,
+        circuit: formData.circuit,
+        status: formData.status,
+        fees: formData.total_fees,
+        paid_amount: formData.total_paid,
+      });
+      navigate("/firm/cases");
     } finally {
       setSubmitting(false);
     }

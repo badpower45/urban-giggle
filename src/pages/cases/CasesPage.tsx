@@ -14,6 +14,7 @@ import {
   Clock,
   MoreVertical,
   X,
+  Sparkles,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { Case, CaseStatus } from "../../types";
@@ -116,14 +117,28 @@ export const CasesPage: React.FC = () => {
           <CountBadge count={cases.length} isLoading={loading} />
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/firm/cases/new")}
-          className="h-9 shrink-0 flex items-center gap-1.5 bg-primary px-3.5 text-sm font-semibold text-white rounded-lg hover:bg-primary/90 transition-colors shadow-2xs"
-        >
-          <Plus className="w-4 h-4" />
-          <span>قضية جديدة</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/firm/scanner")}
+            className="h-9 shrink-0 flex items-center gap-1.5 border border-primary/25 bg-primary/5 px-3 text-sm font-semibold text-primary rounded-lg hover:bg-primary/10 transition-colors shadow-2xs"
+          >
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span>المسح الذكي</span>
+            <span className="text-[10px] bg-primary text-white font-bold px-1.5 py-0.5 rounded-full">
+              Beta
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/firm/cases/new")}
+            className="h-9 shrink-0 flex items-center gap-1.5 bg-primary px-3.5 text-sm font-semibold text-white rounded-lg hover:bg-primary/90 transition-colors shadow-2xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>قضية جديدة</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}

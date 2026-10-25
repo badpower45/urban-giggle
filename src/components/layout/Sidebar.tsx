@@ -20,6 +20,8 @@ import {
   LogOut,
   Bell,
   Languages,
+  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuthStore } from "../../lib/api/store";
@@ -46,6 +48,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { to: "/firm/cases", label: "القضايا", icon: Briefcase },
         { to: "/firm/clients", label: "الموكلين", icon: Users },
         { to: "/firm/police-reports", label: "محاضر الشرطة", icon: ShieldAlert },
+        { to: "/firm/contracts", label: "منشئ العقود الذكية", icon: FileText, badge: "جديد" },
+        { to: "/firm/scanner", label: "الماسح الذكي", icon: Sparkles, badge: "Beta" },
       ],
     },
     {
@@ -74,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { to: "/firm/settings/subscription", label: "الاشتراك", icon: CreditCard },
         { to: "/firm/settings/audit-log", label: "سجل التدقيق", icon: FileText },
         { to: "/profile", label: "الملف الشخصي", icon: User },
+        { to: "/super-admin", label: "الإدارة العليا (Admin)", icon: ShieldCheck, badge: "Master" },
       ],
     },
   ];
@@ -200,7 +205,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   isActive ? "text-white" : "text-primary"
                                 )}
                               />
-                              {!collapsed && <span className="truncate">{item.label}</span>}
+                              {!collapsed && (
+                                <div className="flex items-center justify-between flex-1 truncate">
+                                  <span className="truncate">{item.label}</span>
+                                  {'badge' in item && item.badge && (
+                                    <span className={cn(
+                                      "text-[9px] font-bold px-1.5 py-0.5 rounded-full border shadow-xs transition-colors",
+                                      isActive
+                                        ? "bg-white/20 text-white border-white/30"
+                                        : "bg-primary/10 text-primary border-primary/20"
+                                    )}>
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </>
                           )}
                         </NavLink>

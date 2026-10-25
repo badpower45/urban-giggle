@@ -29,11 +29,14 @@ import {
   SessionsMockup,
   PhoneMockup,
 } from "./components/Mockups";
+import { LandingContactForm } from "./components/LandingContactForm";
+import { usePlatformStore } from "../../lib/platformStore";
 import { useToast } from "../../components/common/Toast";
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { settings, plans } = usePlatformStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [activeFeatureTab, setActiveFeatureTab] = useState<number>(0);
@@ -79,8 +82,8 @@ export const LandingPage: React.FC = () => {
                 <img src="/logo.webp" alt="شعار سياق" width="40" height="40" className="size-full object-cover" />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-xl font-black text-primary tracking-tight font-headline">سِـيَـاق</span>
-                <span className="mt-1 text-[11px] font-semibold text-tertiary">نظام لإدارة مكاتب المحاماة</span>
+                <span className="text-xl font-black text-primary tracking-tight font-headline">{settings.systemName}</span>
+                <span className="mt-1 text-[11px] font-semibold text-tertiary">{settings.slogan}</span>
               </span>
             </Link>
           </div>
@@ -88,7 +91,7 @@ export const LandingPage: React.FC = () => {
           {/* Desktop Nav Links */}
           <div className="hidden items-center gap-6 lg:gap-8 md:flex">
             <a href="#why" className="text-sm font-semibold text-primary/80 hover:text-primary transition-colors">
-              لماذا سياق؟
+              لماذا {settings.systemName}؟
             </a>
             <a href="#features" className="text-sm font-semibold text-primary/80 hover:text-primary transition-colors">
               المميزات
@@ -673,12 +676,16 @@ export const LandingPage: React.FC = () => {
                   <h3 className="text-base font-bold text-primary">باقة المحامي الفردي</h3>
                   <div className="mt-3 flex items-baseline gap-1">
                     <span className="text-3xl font-black text-primary">
-                      {billingCycle === "monthly" ? "500" : "425"}
+                      {billingCycle === "monthly"
+                        ? (plans[0]?.monthlyPrice || 500).toLocaleString('ar-EG')
+                        : Math.round((plans[0]?.annualPrice || 5000) / 12).toLocaleString('ar-EG')}
                     </span>
-                    <span className="text-xs font-semibold text-tertiary">ج.م / شهر</span>
+                    <span className="text-xs font-semibold text-tertiary">{settings.currency} / شهر</span>
                   </div>
                   {billingCycle === "yearly" && (
-                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">5,100 ج.م تُدفع سنوياً</span>
+                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
+                      {(plans[0]?.annualPrice || 5000).toLocaleString('ar-EG')} {settings.currency} تُدفع سنوياً
+                    </span>
                   )}
                 </div>
 
@@ -757,15 +764,19 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <div className="border-b border-border p-6 pt-8">
-                  <h3 className="text-base font-bold text-primary">باقة المكاتب المتوسطة</h3>
+                  <h3 className="text-base font-bold text-primary">{plans[1]?.name || "باقة المكاتب المتوسطة"}</h3>
                   <div className="mt-3 flex items-baseline gap-1">
                     <span className="text-3xl font-black text-primary">
-                      {billingCycle === "monthly" ? "1,400" : "1,190"}
+                      {billingCycle === "monthly"
+                        ? (plans[1]?.monthlyPrice || 1400).toLocaleString('ar-EG')
+                        : Math.round((plans[1]?.annualPrice || 14000) / 12).toLocaleString('ar-EG')}
                     </span>
-                    <span className="text-xs font-semibold text-tertiary">ج.م / شهر</span>
+                    <span className="text-xs font-semibold text-tertiary">{settings.currency} / شهر</span>
                   </div>
                   {billingCycle === "yearly" && (
-                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">14,280 ج.م تُدفع سنوياً</span>
+                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
+                      {(plans[1]?.annualPrice || 14000).toLocaleString('ar-EG')} {settings.currency} تُدفع سنوياً
+                    </span>
                   )}
                 </div>
 
@@ -838,15 +849,19 @@ export const LandingPage: React.FC = () => {
               {/* Large Enterprise Plan */}
               <article className="relative flex flex-col rounded-2xl border border-border bg-white shadow-xs transition-all hover:border-secondary">
                 <div className="border-b border-border p-6">
-                  <h3 className="text-base font-bold text-primary">باقة المكاتب الكبيرة</h3>
+                  <h3 className="text-base font-bold text-primary">{plans[2]?.name || "باقة المكاتب الكبيرة"}</h3>
                   <div className="mt-3 flex items-baseline gap-1">
                     <span className="text-3xl font-black text-primary">
-                      {billingCycle === "monthly" ? "3,700" : "3,145"}
+                      {billingCycle === "monthly"
+                        ? (plans[2]?.monthlyPrice || 3700).toLocaleString('ar-EG')
+                        : Math.round((plans[2]?.annualPrice || 37000) / 12).toLocaleString('ar-EG')}
                     </span>
-                    <span className="text-xs font-semibold text-tertiary">ج.م / شهر</span>
+                    <span className="text-xs font-semibold text-tertiary">{settings.currency} / شهر</span>
                   </div>
                   {billingCycle === "yearly" && (
-                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">37,740 ج.م تُدفع سنوياً</span>
+                    <span className="text-[11px] text-emerald-700 font-bold mt-1 block">
+                      {(plans[2]?.annualPrice || 37000).toLocaleString('ar-EG')} {settings.currency} تُدفع سنوياً
+                    </span>
                   )}
                 </div>
 
@@ -1005,33 +1020,41 @@ export const LandingPage: React.FC = () => {
         </section>
 
         {/* CONTACT / SUPPORT SECTION */}
-        <section id="contact" className="py-16 md:py-20 bg-white border-t border-border">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-secondary/15 flex items-center justify-center text-secondary mx-auto mb-4">
-              <MessageSquare className="w-6 h-6" />
+        <section id="contact" className="py-16 md:py-24 bg-gradient-to-b from-white to-slate-50 border-t border-border">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <div className="w-12 h-12 rounded-2xl bg-secondary/15 flex items-center justify-center text-secondary mx-auto mb-4">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <h2 className="text-2xl font-black text-primary md:text-3xl font-headline">
+                تواصل مع فريق {settings.systemName} أو احجز ديمو مخصص
+              </h2>
+              <p className="mt-3 text-sm text-tertiary max-w-xl mx-auto">
+                سجل بيانات مكتبك وسيتصل بك أحد مستشارينا خلال دقائق لمساعدتك في تخصيص النظام أو الإجابة على أي استفسار
+              </p>
             </div>
-            <h2 className="text-2xl font-black text-primary md:text-3xl font-headline">
-              هل لديك استفسار خاص بمكتبك؟
-            </h2>
-            <p className="mt-3 text-sm text-tertiary max-w-xl mx-auto">
-              فريق الدعم الفني والاستشاريين القانونيين في سياق متاحون على مدار الساعة لمساعدتك في تهيئة النظام لمكتبك
-            </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            {/* Interactive Lead / Contact Form */}
+            <div className="mb-10">
+              <LandingContactForm />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-slate-200/70">
               <button
+                type="button"
                 onClick={handleCopyEmail}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-xs font-bold text-primary hover:bg-slate-50 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-xs font-bold text-primary hover:bg-slate-50 transition-colors shadow-xs"
               >
-                <span>نسخ البريد: support@siyaq.legal</span>
+                <span>نسخ البريد: {settings.supportEmail || "support@siyaq.legal"}</span>
                 <Copy className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
               <a
-                href="https://wa.me/201023456789"
+                href={`https://wa.me/${(settings.supportPhone || "201023456789").replace(/[^0-9]/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 text-xs font-bold transition-colors shadow-sm"
               >
-                <span>تحدث معنا عبر واتساب</span>
+                <span>تحدث معنا عبر واتساب ({settings.supportPhone || "+20 102 345 6789"})</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
