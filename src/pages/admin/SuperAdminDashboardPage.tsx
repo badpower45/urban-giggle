@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -73,6 +73,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
     stats,
     updateSettings,
     updatePlanPrice,
+    syncFirmsFromSupabase,
     addFirm,
     updateFirm,
     extendFirmTrial,
@@ -84,6 +85,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
     updateLeadStatus,
     updateComplaintStatus,
   } = usePlatformStore();
+
+  useEffect(() => {
+    syncFirmsFromSupabase();
+  }, []);
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
@@ -767,14 +772,28 @@ export const SuperAdminDashboardPage: React.FC = () => {
                   </p>
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={() => setShowAddFirmModal(true)}
-                  className="h-10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl gap-2 shadow-lg shadow-amber-500/10"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>إضافة مكتب محاماة جديد</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      await syncFirmsFromSupabase();
+                      showToast('تمت المزامنة اللحظية مع مكاتب المحاماة في سحابة Supabase بنجاح', 'success');
+                    }}
+                    className="h-10 text-xs bg-slate-800 border-slate-700 text-slate-300 hover:text-white rounded-xl gap-2 shadow-sm"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>مزامنة سحابية</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setShowAddFirmModal(true)}
+                    className="h-10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl gap-2 shadow-lg shadow-amber-500/10"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>إضافة مكتب محاماة جديد</span>
+                  </Button>
+                </div>
               </div>
 
               {/* Filters Row */}

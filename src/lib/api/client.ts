@@ -41,8 +41,8 @@ export const apiClient = {
     return supabaseService.syncAllFromCloud();
   },
 
-  async seedCloudData() {
-    return supabaseService.seedCloudData();
+  async seedCloudData(): Promise<{ success: boolean; count: number; error?: string }> {
+    return { success: true, count: 0 };
   },
 
   // ============================================================================
@@ -62,11 +62,11 @@ export const apiClient = {
           supabaseService.fetchTasks(),
         ]);
 
-        if (cloudCases && cloudCases.length > 0) appStore.setCases(cloudCases);
-        if (cloudClients && cloudClients.length > 0) appStore.setClients(cloudClients);
-        if (cloudSessions && cloudSessions.length > 0) appStore.setSessions(cloudSessions);
-        if (cloudDeadlines && cloudDeadlines.length > 0) appStore.setDeadlines(cloudDeadlines);
-        if (cloudTasks && cloudTasks.length > 0) appStore.setTasks(cloudTasks);
+        if (Array.isArray(cloudCases)) appStore.setCases(cloudCases);
+        if (Array.isArray(cloudClients)) appStore.setClients(cloudClients);
+        if (Array.isArray(cloudSessions)) appStore.setSessions(cloudSessions);
+        if (Array.isArray(cloudDeadlines)) appStore.setDeadlines(cloudDeadlines);
+        if (Array.isArray(cloudTasks)) appStore.setTasks(cloudTasks);
       } catch (err) {
         console.warn('[Dashboard] Cloud sync notice:', err);
       }
@@ -88,15 +88,15 @@ export const apiClient = {
         new_clients_month: clients.length,
         revenue_month: totalRevenueMonth,
         pending_revenue: totalPendingRevenue,
-        revenue_prev_month: 31000,
-        new_clients_prev_month: 2,
+        revenue_prev_month: 0,
+        new_clients_prev_month: 0,
       },
       upcoming_sessions: sessions.slice(0, 4),
       critical_deadlines: deadlines.slice(0, 4),
       task_summary: {
         pending: tasks.filter((t) => t.status === 'pending').length,
         in_progress: tasks.filter((t) => t.status === 'in_progress').length,
-        overdue: 1,
+        overdue: tasks.filter((t) => t.status !== 'completed' && t.due_date && new Date(t.due_date) < new Date()).length,
       },
       recent_tasks: tasks.slice(0, 4),
       active_cases: cases.slice(0, 5),
@@ -112,7 +112,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudCases = await supabaseService.fetchCases();
-        if (cloudCases && cloudCases.length > 0) {
+        if (Array.isArray(cloudCases)) {
           appStore.setCases(cloudCases);
         }
       } catch (err) {
@@ -197,7 +197,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudClients = await supabaseService.fetchClients();
-        if (cloudClients && cloudClients.length > 0) {
+        if (Array.isArray(cloudClients)) {
           appStore.setClients(cloudClients);
         }
       } catch (err) {
@@ -279,7 +279,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudSessions = await supabaseService.fetchSessions();
-        if (cloudSessions && cloudSessions.length > 0) {
+        if (Array.isArray(cloudSessions)) {
           appStore.setSessions(cloudSessions);
         }
       } catch (err) {
@@ -353,7 +353,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudDeadlines = await supabaseService.fetchDeadlines();
-        if (cloudDeadlines && cloudDeadlines.length > 0) {
+        if (Array.isArray(cloudDeadlines)) {
           appStore.setDeadlines(cloudDeadlines);
         }
       } catch (err) {
@@ -414,7 +414,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudTasks = await supabaseService.fetchTasks();
-        if (cloudTasks && cloudTasks.length > 0) {
+        if (Array.isArray(cloudTasks)) {
           appStore.setTasks(cloudTasks);
         }
       } catch (err) {
@@ -475,7 +475,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudReports = await supabaseService.fetchPoliceReports();
-        if (cloudReports && cloudReports.length > 0) {
+        if (Array.isArray(cloudReports)) {
           appStore.setPoliceReports(cloudReports);
         }
       } catch (err) {
@@ -542,7 +542,7 @@ export const apiClient = {
     if (supabaseService.isConfigured()) {
       try {
         const cloudPoas = await supabaseService.fetchPoas(clientId);
-        if (cloudPoas && cloudPoas.length > 0) {
+        if (Array.isArray(cloudPoas)) {
           appStore.setPoas(cloudPoas);
         }
       } catch (err) {

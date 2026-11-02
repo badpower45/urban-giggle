@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { supabaseService } from "./lib/supabase/client";
 import { AppLayout } from "./components/layout/AppLayout";
 
 // Pages
@@ -43,6 +44,20 @@ const queryClient = new QueryClient({
 });
 
 export const App: React.FC = () => {
+  useEffect(() => {
+    if (supabaseService.isConfigured()) {
+      supabaseService.syncSessionToStore();
+      const sub = supabaseService.onAuthStateChange(() => {
+        supabaseService.syncSessionToStore();
+      });
+      return () => {
+        if (sub && typeof (sub as any).unsubscribe === 'function') {
+          (sub as any).unsubscribe();
+        }
+      };
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>

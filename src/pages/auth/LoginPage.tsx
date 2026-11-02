@@ -38,12 +38,13 @@ export const LoginPage: React.FC = () => {
 
     try {
       if (isCloud) {
-        const { error } = await supabaseService.signIn(loginEmail, loginPassword);
+        const { error } = await supabaseService.signIn(loginEmail.trim(), loginPassword);
         if (error) {
           setErrorMsg(error.message || "فشل تسجيل الدخول. تحقق من البريد وكلمة المرور.");
           setLoading(false);
           return;
         }
+        await supabaseService.syncSessionToStore();
       }
       navigate("/firm/dashboard");
     } catch (err: any) {
@@ -67,7 +68,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       if (isCloud) {
-        const { data, error } = await supabaseService.signUp(regEmail.trim(), regPassword, {
+        const { error } = await supabaseService.signUp(regEmail.trim(), regPassword, {
           full_name: regFullName.trim(),
           firm_name: regFirmName.trim() || `مكتب ${regFullName.trim()} للمحاماة`,
         });
@@ -78,11 +79,15 @@ export const LoginPage: React.FC = () => {
           return;
         }
 
-        setSuccessMsg("تم إنشاء الحساب بنجاح! جاري تحويلك إلى لوحة التحكم...");
-        setTimeout(() => navigate("/firm/dashboard"), 1200);
+        // Auto sign-in and hydrate session
+        await supabaseService.signIn(regEmail.trim(), regPassword);
+        await supabaseService.syncSessionToStore();
+
+        setSuccessMsg("تم إنشاء الحساب وقيد مكتب المحاماة بنجاح! جاري تحويلك إلى لوحة التحكم...");
+        setTimeout(() => navigate("/firm/dashboard"), 800);
       } else {
         // Local mode demo registration
-        setSuccessMsg("تم إنشاء الحساب بنجاح في وضع العمل السريع.");
+        setSuccessMsg("تم إنشاء الحساب بنجاح.");
         setTimeout(() => navigate("/firm/dashboard"), 800);
       }
     } catch (err: any) {

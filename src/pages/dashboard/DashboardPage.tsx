@@ -15,12 +15,14 @@ import {
   ListTodo,
   ShieldAlert,
   ArrowLeft,
+  Sparkles,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { DashboardData } from "../../types";
 import { useAuthStore } from "../../lib/api/store";
 import { CountBadge } from "../../components/common/CountBadge";
 import { formatCurrency, formatDate, getDaysRemaining, getDeadlineUrgencyLabel } from "../../lib/utils";
+import { openBaseeraTour } from "../../components/common/OnboardingTour";
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -121,6 +123,38 @@ export const DashboardPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Fresh Account Guided Onboarding Banner */}
+      {owner_stats.active_cases === 0 && owner_stats.new_clients_month === 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-primary font-headline">مرحباً بك في منظومة {firm?.name || "المكتب"}!</h3>
+              <p className="text-xs text-tertiary mt-0.5">ابدأ جولة تعريفية سريعة لاستكشاف مميزات النظام، أو أضف أول موكل وقضية للبدء فوراً.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => openBaseeraTour()}
+              className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>بدء الجولة التعريفية</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/firm/clients/new')}
+              className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white border border-border text-primary hover:bg-slate-50 font-semibold text-xs shadow-xs transition-colors"
+            >
+              إضافة موكل الآن
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 4 Stat Cards */}
       <div className="space-y-3">

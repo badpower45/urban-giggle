@@ -22,6 +22,7 @@ import {
 import { cn } from "../../lib/utils";
 import { Logo } from "../common/Logo";
 import { OfflineBanner } from "../offline/OfflineBanner";
+import { OnboardingTour } from "../common/OnboardingTour";
 
 export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -111,6 +112,7 @@ export const AppLayout: React.FC = () => {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <OfflineBanner />
         <Header onOpenMobileMenu={() => setMobileMenuOpen(true)} />
+        <OnboardingTour />
 
         <main className="flex-1 overflow-y-auto pb-24 md:pb-6 custom-scrollbar">
           <Outlet />

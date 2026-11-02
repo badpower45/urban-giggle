@@ -15,7 +15,7 @@ import {
 } from '../../types';
 import { ContractInstance } from '../../types/contract';
 
-const STORAGE_KEY = 'baseera_app_data_v1';
+const STORAGE_KEY = 'baseera_clean_v2';
 
 const now = new Date();
 const addDays = (d: Date, days: number) => {
@@ -101,511 +101,13 @@ export const INITIAL_MEMBERS: FirmMember[] = [
   },
 ];
 
-export const INITIAL_CLIENTS: Client[] = [
-  {
-    id: '01a085e6-e9ad-71b6-95f2-766fc4418bdf',
-    firm_id: INITIAL_FIRM.id,
-    full_name: 'شركة عامر للتجارة الدولية',
-    client_type: 'company',
-    occupation: 'استيراد وتصدير',
-    company_reg: '764764',
-    phone: '01223456789',
-    email: 'contact@amer-trade.eg',
-    address: 'حي الشرق، بورسعيد',
-    notes: 'موكل رئيسي بقضية تعويض تجاري وتوريدات.',
-    active_cases: 1,
-    case_count: 1,
-    report_count: 0,
-    created_at: '2026-09-09T11:21:37Z',
-    updated_at: '2026-09-09T11:21:37Z',
-  },
-  {
-    id: 'client-101',
-    firm_id: INITIAL_FIRM.id,
-    full_name: 'أحمد محمود إسماعيل',
-    client_type: 'individual',
-    occupation: 'مهندس مدني',
-    national_id: '28501011234567',
-    phone: '01012345678',
-    email: 'ahmed.mahmoud@example.com',
-    address: 'مدينة نصر، القاهرة',
-    notes: 'عميل مرتبط بقضية تعويض عمالي ضد شركة مقاولات.',
-    active_cases: 1,
-    case_count: 1,
-    report_count: 1,
-    created_at: '2026-08-15T10:00:00Z',
-    updated_at: '2026-08-15T10:00:00Z',
-  },
-  {
-    id: 'client-102',
-    firm_id: INITIAL_FIRM.id,
-    full_name: 'سارة عبد الرحمن حسن',
-    client_type: 'individual',
-    occupation: 'مديرة حسابات',
-    national_id: '29104159876543',
-    phone: '01123456789',
-    email: 'sara.abdelrahman@example.com',
-    address: 'مصر الجديدة، القاهرة',
-    notes: 'دعوى نفقة ومصروفات علاجية وصغار.',
-    active_cases: 1,
-    case_count: 1,
-    report_count: 0,
-    created_at: '2026-08-22T14:30:00Z',
-    updated_at: '2026-08-22T14:30:00Z',
-  },
-  {
-    id: 'client-103',
-    firm_id: INITIAL_FIRM.id,
-    full_name: 'شركة النيل للصناعات الدوائية',
-    client_type: 'company',
-    occupation: 'صناعات دوائية ومستلزمات',
-    company_reg: '452199',
-    phone: '0223456789',
-    email: 'legal@nile-pharma.com',
-    address: 'المنطقة الصناعية، التجمع الخامس',
-    notes: 'نزاع تجاري حول عقد توريد مواد خام.',
-    active_cases: 1,
-    case_count: 2,
-    report_count: 0,
-    created_at: '2026-08-10T09:15:00Z',
-    updated_at: '2026-08-10T09:15:00Z',
-  },
-  {
-    id: 'client-104',
-    firm_id: INITIAL_FIRM.id,
-    full_name: 'محمد عبد الله الشيخ',
-    client_type: 'individual',
-    occupation: 'رجل أعمال ومطور عقاري',
-    national_id: '27911021239988',
-    phone: '01234567890',
-    email: 'm.elsheikh@example.com',
-    address: 'دجلة، المعادي، القاهرة',
-    notes: 'منازعة تثبيت ملكية عقار بالمعادي.',
-    active_cases: 1,
-    case_count: 1,
-    report_count: 0,
-    created_at: '2026-07-19T11:00:00Z',
-    updated_at: '2026-07-19T11:00:00Z',
-  },
-];
-
-export const INITIAL_CASES: Case[] = [
-  {
-    id: '01a085f6-51f3-7bf7-bf6e-d58b1182af70',
-    firm_id: INITIAL_FIRM.id,
-    client_id: '01a085e6-e9ad-71b6-95f2-766fc4418bdf',
-    client_name: 'شركة عامر للتجارة الدولية',
-    title: 'دعوى فسخ عقد توريد ومطالبة بتعويض',
-    case_number: '3542523',
-    case_year: 2026,
-    court_id: 'c1',
-    court_name: 'محكمة بورسعيد الابتدائية',
-    court_governorate: 'بورسعيد',
-    case_type_id: 'ct1',
-    case_type_name: 'مدني جزئي',
-    circuit: 'الدائرة 3 مدني بورسعيد',
-    description: 'المطالبة بمستحقات بضائع متأخرة ومصروفات تفريغ وشحن بالحاويات بميناء بورسعيد.',
-    opponent_name: 'شركة الصفا للشحن والتفريغ',
-    opponent_lawyer: 'الأستاذ أحمد فؤاد المحامي',
-    client_role: 'plaintiff',
-    filing_date: '2026-09-01T00:00:00Z',
-    status: 'active',
-    assigned_to: INITIAL_USER.id,
-    assigned_to_name: INITIAL_USER.full_name,
-    next_session_date: addDays(now, 14),
-    nearest_deadline_date: addDays(now, 10),
-    sessions_count: 2,
-    pending_deadlines_count: 1,
-    total_fees: 30000,
-    total_paid: 20000,
-    created_by: INITIAL_USER.id,
-    created_at: '2026-09-09T11:38:27Z',
-    updated_at: '2026-09-09T11:38:49Z',
-  },
-  {
-    id: 'case-201',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-101',
-    client_name: 'أحمد محمود إسماعيل',
-    title: 'دعوى تعويض عن إصابة عمل وفصل تعسفي',
-    case_number: '1842',
-    case_year: 2026,
-    court_id: 'c2',
-    court_name: 'محكمة شمال القاهرة الابتدائية',
-    court_governorate: 'القاهرة',
-    case_type_id: 'ct3',
-    case_type_name: 'تعويضات عمالية',
-    circuit: 'الدائرة 7 عمال',
-    description: 'مطالبة بتعويض مادي وأدبي طبقاً للمادة 122 من قانون العمل 12 لسنة 2003.',
-    opponent_name: 'شركة الأهرام للإنشاءات الحديثة',
-    opponent_lawyer: 'الأستاذ عادل الشربيني',
-    client_role: 'plaintiff',
-    filing_date: '2026-06-12T00:00:00Z',
-    status: 'active',
-    assigned_to: 'user-2',
-    assigned_to_name: 'خالد السعيد',
-    next_session_date: addDays(now, 2),
-    nearest_deadline_date: addDays(now, 3),
-    sessions_count: 3,
-    pending_deadlines_count: 1,
-    total_fees: 15000,
-    total_paid: 5000,
-    created_by: INITIAL_USER.id,
-    created_at: '2026-06-12T10:00:00Z',
-    updated_at: '2026-09-05T12:00:00Z',
-  },
-  {
-    id: 'case-202',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-102',
-    client_name: 'سارة عبد الرحمن حسن',
-    title: 'دعوى نفقة زوجية وبدل فرش وغطاء',
-    case_number: '912',
-    case_year: 2026,
-    court_id: 'c4',
-    court_name: 'محكمة الأسرة بمدينة نصر',
-    court_governorate: 'القاهرة',
-    case_type_id: 'ct5',
-    case_type_name: 'أسرة',
-    circuit: 'الدائرة 3 أسرة',
-    description: 'طلب فرض نفقة مؤقتة وإلزام المدعى عليه بالإنفاق ومصاريف التعليم.',
-    opponent_name: 'حسام مصطفى كمال',
-    opponent_lawyer: 'الأستاذ إبراهيم جلال',
-    client_role: 'plaintiff',
-    filing_date: '2026-07-01T00:00:00Z',
-    status: 'active',
-    assigned_to: INITIAL_USER.id,
-    assigned_to_name: INITIAL_USER.full_name,
-    next_session_date: addDays(now, 5),
-    nearest_deadline_date: addDays(now, 8),
-    sessions_count: 1,
-    pending_deadlines_count: 1,
-    total_fees: 12000,
-    total_paid: 8000,
-    created_by: INITIAL_USER.id,
-    created_at: '2026-07-01T11:20:00Z',
-    updated_at: '2026-09-01T09:00:00Z',
-  },
-  {
-    id: 'case-203',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-103',
-    client_name: 'شركة النيل للصناعات الدوائية',
-    title: 'منازعة تجارية وإلزام بسداد فواتير اعتمادات مستندية',
-    case_number: '331',
-    case_year: 2026,
-    court_id: 'c5',
-    court_name: 'المحكمة الاقتصادية بالقاهرة',
-    court_governorate: 'القاهرة',
-    case_type_id: 'ct6',
-    case_type_name: 'تجاري وشركات',
-    circuit: 'الدائرة الاستئنافية الأولى',
-    description: 'نزاع تحكيمي ومطالبة بقيمة شحنات دوائية وتطبيق غرامات التأخير التعاقدية.',
-    opponent_name: 'الشركة السويسرية للكيماويات',
-    opponent_lawyer: 'مكتب الشرقاوي وسراج للمحاماة',
-    client_role: 'plaintiff',
-    filing_date: '2026-04-10T00:00:00Z',
-    status: 'reserved_for_ruling',
-    assigned_to: 'user-2',
-    assigned_to_name: 'خالد السعيد',
-    next_session_date: addDays(now, 9),
-    nearest_deadline_date: addDays(now, 6),
-    sessions_count: 5,
-    pending_deadlines_count: 1,
-    total_fees: 45000,
-    total_paid: 25000,
-    created_by: INITIAL_USER.id,
-    created_at: '2026-04-10T08:30:00Z',
-    updated_at: '2026-09-08T16:00:00Z',
-  },
-  {
-    id: 'case-204',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-104',
-    client_name: 'محمد عبد الله الشيخ',
-    title: 'دعوى صحة ونفاذ عقد بيع أرض فضاء بالمعادي',
-    case_number: '77',
-    case_year: 2025,
-    court_id: 'c3',
-    court_name: 'محكمة جنوب القاهرة الابتدائية',
-    court_governorate: 'القاهرة',
-    case_type_id: 'ct4',
-    case_type_name: 'منازعات عقارية وتمليك',
-    circuit: 'الدائرة 12 مدني كلي',
-    description: 'تثبيت ملكية قطعة أرض مساحتها 1200 متر مربع والتحقق من صحة توقيع البائع.',
-    opponent_name: 'ورثة المرحوم كامل البشري',
-    opponent_lawyer: 'الأستاذ عصام توفيق',
-    client_role: 'plaintiff',
-    filing_date: '2025-11-20T00:00:00Z',
-    status: 'on_hold',
-    assigned_to: INITIAL_USER.id,
-    assigned_to_name: INITIAL_USER.full_name,
-    next_session_date: null,
-    nearest_deadline_date: addDays(now, 7),
-    sessions_count: 4,
-    pending_deadlines_count: 1,
-    total_fees: 20000,
-    total_paid: 10000,
-    created_by: INITIAL_USER.id,
-    created_at: '2025-11-20T13:00:00Z',
-    updated_at: '2026-08-30T10:00:00Z',
-  },
-];
-
-export const INITIAL_SESSIONS: CourtSession[] = [
-  {
-    id: 'session-301',
-    case_id: 'case-201',
-    case_title: 'دعوى تعويض عن إصابة عمل وفصل تعسفي',
-    case_court: 'محكمة شمال القاهرة الابتدائية',
-    case_client: 'أحمد محمود إسماعيل',
-    session_date: addDays(now, 2),
-    outcome_type: 'adjourned',
-    adjournment_reason: 'لتقديم أصل عقد العمل ومطابقة شهادة التأمينات الاجتماعية والرد على مذكرة الخصم.',
-    notes: 'حضور المحامي خالد السعيد بتوكيل رسمي.',
-    next_session_date: addDays(now, 21),
-  },
-  {
-    id: 'session-302',
-    case_id: 'case-202',
-    case_title: 'دعوى نفقة زوجية وبدل فرش وغطاء',
-    case_court: 'محكمة الأسرة بمدينة نصر',
-    case_client: 'سارة عبد الرحمن حسن',
-    session_date: addDays(now, 5),
-    outcome_type: 'adjourned',
-    adjournment_reason: 'لورود التحريات المالية عن دخل الزوج من جهة عمله بالبنك الأهلي.',
-    notes: 'الجلسة الأولى بعد إعادة الإعلان.',
-    next_session_date: addDays(now, 28),
-  },
-  {
-    id: 'session-303',
-    case_id: 'case-203',
-    case_title: 'منازعة تجارية وإلزام بسداد فواتير اعتمادات مستندية',
-    case_court: 'المحكمة الاقتصادية بالقاهرة',
-    case_client: 'شركة النيل للصناعات الدوائية',
-    session_date: addDays(now, 9),
-    outcome_type: 'reserved_for_ruling',
-    adjournment_reason: 'حجز الدعوى للحكم مع التصريح بمذكرات ختامية خلال 3 أيام.',
-    notes: 'المرافعة الختامية مكتملة وتم إيداع تقرير الخبير الحسابي.',
-    next_session_date: null,
-  },
-  {
-    id: 'session-304',
-    case_id: '01a085f6-51f3-7bf7-bf6e-d58b1182af70',
-    case_title: 'دعوى فسخ عقد توريد ومطالبة بتعويض',
-    case_court: 'محكمة بورسعيد الابتدائية',
-    case_client: 'شركة عامر للتجارة الدولية',
-    session_date: addDays(now, 14),
-    outcome_type: 'adjourned',
-    adjournment_reason: 'لضم المفردات الجمركية من ميناء بورسعيد.',
-    notes: 'جلسة استجواب الخصم وتقديم المستندات.',
-    next_session_date: addDays(now, 35),
-  },
-];
-
-export const INITIAL_DEADLINES: LegalDeadline[] = [
-  {
-    id: 'dl-401',
-    case_id: 'case-201',
-    case_title: 'دعوى تعويض عمالي - أحمد محمود',
-    deadline_date: addDays(now, 3),
-    type: 'تقديم مذكرة دفاع',
-    urgency: 'critical',
-    is_confirmed: true,
-    description: 'إيداع مذكرة رد ختامية على مذكرة الدفاع المقدمة من محامي شركة الأهرام.',
-  },
-  {
-    id: 'dl-402',
-    case_id: 'case-203',
-    case_title: 'نزاع تجاري - شركة النيل',
-    deadline_date: addDays(now, 6),
-    type: 'إيداع أصل عقد التوريد',
-    urgency: 'high',
-    is_confirmed: true,
-    description: 'تسليم النسخة الموثقة من العقد إلى سكرتارية الدائرة قبل موعد النطق بالحكم.',
-  },
-  {
-    id: 'dl-403',
-    case_id: 'case-204',
-    case_title: 'منازعة ملكية عقارية - محمد الشيخ',
-    deadline_date: addDays(now, 7),
-    type: 'تجديد التوكيل الخاص',
-    urgency: 'medium',
-    is_confirmed: true,
-    description: 'تجديد توكيل القضايا من الشهر العقاري بالمعادي لإرفاقه بمحضر الجلسة.',
-  },
-  {
-    id: 'dl-404',
-    case_id: 'case-202',
-    case_title: 'قضية نفقة - سارة عبد الرحمن',
-    deadline_date: addDays(now, 8),
-    type: 'إيداع شهادة التحريات',
-    urgency: 'high',
-    is_confirmed: true,
-    description: 'استلام شهادة دخل الزوج من مصلحة الضرائب وإيداعها ملف الدعوى.',
-  },
-  {
-    id: 'dl-405',
-    case_id: '01a085f6-51f3-7bf7-bf6e-d58b1182af70',
-    case_title: 'دعوى فسخ توريد - شركة عامر',
-    deadline_date: addDays(now, 10),
-    type: 'سداد أمانة الخبير',
-    urgency: 'medium',
-    is_confirmed: true,
-    description: 'سداد رسم أمانة خبير وزارة العدل المنتدب لفحص البضائع.',
-  },
-];
-
-export const INITIAL_TASKS: Task[] = [
-  {
-    id: 'task-1',
-    firm_id: INITIAL_FIRM.id,
-    case_id: 'case-201',
-    case_title: 'دعوى تعويض عمالي',
-    title: 'مراجعة أصل عقد العمل وتحضير حافظة المستندات',
-    description: 'ترتيب إيصالات التحويل البنكي وتوقيعات الحضور والانصراف.',
-    priority: 'high',
-    status: 'in_progress',
-    assigned_to: 'user-2',
-    assigned_to_name: 'خالد السعيد',
-    due_date: addDays(now, 2),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'task-2',
-    firm_id: INITIAL_FIRM.id,
-    case_id: 'case-202',
-    case_title: 'قضية نفقة',
-    title: 'استخراج شهادة رسمية من السجل المدني للزوج والطفل',
-    description: 'إرفاق شهادة الميلاد المميكنة وقيد الزواج في ملف المحكمة.',
-    priority: 'medium',
-    status: 'pending',
-    assigned_to: 'user-3',
-    assigned_to_name: 'منى إبراهيم',
-    due_date: addDays(now, 4),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'task-3',
-    firm_id: INITIAL_FIRM.id,
-    case_id: null,
-    case_title: null,
-    title: 'متابعة تأسيس شركة ذات مسؤولية محدودة بالهيئة العامة للاستثمار',
-    description: 'حجز الاسم التجاري والحصول على شهادة عدم الالتباس.',
-    priority: 'urgent',
-    status: 'pending',
-    assigned_to: INITIAL_USER.id,
-    assigned_to_name: INITIAL_USER.full_name,
-    due_date: addDays(now, 1),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'task-4',
-    firm_id: INITIAL_FIRM.id,
-    case_id: 'case-203',
-    case_title: 'المحكمة الاقتصادية',
-    title: 'تسليم المذكرات الختامية لسكرتارية الدائرة التجارية',
-    description: 'تم تسليم النسخ وسداد رسوم الإيداع والحصول على إيصال التوريد.',
-    priority: 'high',
-    status: 'completed',
-    assigned_to: 'user-2',
-    assigned_to_name: 'خالد السعيد',
-    due_date: addDays(now, -1),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-export const INITIAL_POAS: PowerOfAttorney[] = [
-  {
-    id: 'poa-701',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-101',
-    poa_number: '1254 ب لسنة 2026',
-    poa_date: '2026-01-15',
-    poa_type: 'special',
-    poa_notary_type: 'شهر عقاري',
-    poa_notary_office: 'توثيق مدينة نصر',
-    poa_scope: 'الحضور والترافع واتخاذ كافة إجراءات التقاضي والصلح والإقرار في دعوى التعويض العمالي رقم 1842 لسنة 2026 عمال شمال القاهرة.',
-    status: 'active',
-    notes: 'توكيل ساري ومودع صورة طبق الأصل منه بملف الدعوى.',
-    created_at: '2026-01-15T09:00:00Z',
-  },
-  {
-    id: 'poa-702',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-103',
-    poa_number: '984 أ لسنة 2025',
-    poa_date: '2025-10-01',
-    poa_type: 'general',
-    poa_notary_type: 'شهر عقاري',
-    poa_notary_office: 'توثيق استثمار القاهرة',
-    poa_scope: 'توكيل رسمي عام في القضايا والتحكيم وتمثيل الشركة أمام كافة المحاكم والهيئات القضائية ولجان فض المنازعات.',
-    status: 'active',
-    notes: 'توكيل رسمي عام شركات ساري.',
-    created_at: '2025-10-01T10:00:00Z',
-  },
-];
-
-export const INITIAL_POLICE_REPORTS: PoliceReport[] = [
-  {
-    id: 'pr-801',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-101',
-    client_name: 'أحمد محمود إسماعيل',
-    report_number: '3421',
-    report_year: 2026,
-    report_type: 'junhah',
-    security_directorate: 'مديرية أمن القاهرة',
-    police_station: 'قسم شرطة أول مدينة نصر',
-    police_point: 'نقطة الحي العاشر',
-    general_prosecution: 'نيابة شرق القاهرة الكلية',
-    district_prosecution: 'نيابة أول مدينة نصر الجزئية',
-    status: 'under_investigation',
-    subject: 'تبديد أمانة (وصل أمانة)',
-    incident_summary: 'تحرير محضر بواقعة خيانة أمانة ضد المقاول لامتناعه عن رد مبالغ مالية مسلمة إليه بموجب إيصال أمانة.',
-    incident_location: 'موقع العمل بمدينة نصر',
-    dispatch_number: 'صادر 541 / 2026',
-    intake_number: 'وارد نيابة 812 / 2026',
-    investigating_prosecutor: 'الأستاذ عمر الشريف - وكيل النائب العام',
-    total_fees: 5000,
-    total_expenses: 500,
-    linked_case_id: null,
-    created_at: '2026-08-10T12:00:00Z',
-    updated_at: '2026-08-10T12:00:00Z',
-  },
-  {
-    id: 'pr-802',
-    firm_id: INITIAL_FIRM.id,
-    client_id: 'client-104',
-    client_name: 'محمد عبد الله الشيخ',
-    report_number: '1245',
-    report_year: 2026,
-    report_type: 'admin',
-    security_directorate: 'مديرية أمن القاهرة',
-    police_station: 'قسم شرطة المعادي',
-    general_prosecution: 'نيابة جنوب القاهرة الكلية',
-    district_prosecution: 'نيابة المعادي الجزئية',
-    status: 'archived',
-    subject: 'إثبات حالة / عدم تعرض ومنازعة حيازة عقار',
-    incident_summary: 'إثبات محاولة وضع يد غير مشروع على قطعة أرض وتكليف المباحث بإجراء التحريات.',
-    incident_location: 'شارع النادي، دجلة المعادي',
-    dispatch_number: '210 / 2026',
-    archive_number: 'حفظ إداري 88 / 2026',
-    appeal_number: 'تظلم 14 لسنة 2026',
-    appeal_date: '2026-09-02',
-    appeal_authority: 'المحامي العام الأول لنيابات جنوب القاهرة',
-    appeal_decision: 'قيد الفحص والدراسة',
-    total_fees: 7000,
-    total_expenses: 850,
-    linked_case_id: 'case-204',
-    created_at: '2026-08-25T11:00:00Z',
-    updated_at: '2026-09-02T15:00:00Z',
-  },
-];
+export const INITIAL_CLIENTS: Client[] = [];
+export const INITIAL_CASES: Case[] = [];
+export const INITIAL_SESSIONS: CourtSession[] = [];
+export const INITIAL_DEADLINES: LegalDeadline[] = [];
+export const INITIAL_TASKS: Task[] = [];
+export const INITIAL_POAS: PowerOfAttorney[] = [];
+export const INITIAL_POLICE_REPORTS: PoliceReport[] = [];
 
 export const INITIAL_PLANS: SubscriptionPlan[] = [
   {
@@ -687,15 +189,26 @@ class Store {
   private load(): AppData {
     if (typeof window === 'undefined') return this.getInitialData();
     try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('siyaq_app_data_v1');
+      if (localStorage.getItem('baseera_mock_purged_v2') !== 'true') {
+        localStorage.removeItem('baseera_app_data_v1');
+        localStorage.removeItem('siyaq_app_data_v1');
+        localStorage.removeItem('baseera_clean_v2');
+        localStorage.setItem('baseera_mock_purged_v2', 'true');
+        return this.getInitialData();
+      }
+
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (!parsed.cases) parsed.cases = [];
+        if (!parsed.clients) parsed.clients = [];
         if (!parsed.contracts) parsed.contracts = [];
         if (!parsed.deadlines) parsed.deadlines = [];
         if (!parsed.sessions) parsed.sessions = [];
         if (!parsed.tasks) parsed.tasks = [];
         if (!parsed.policeReports) parsed.policeReports = [];
         if (!parsed.expenses) parsed.expenses = [];
+        if (!parsed.poas) parsed.poas = [];
         return parsed;
       }
     } catch {
@@ -730,52 +243,8 @@ class Store {
       poas: INITIAL_POAS,
       policeReports: INITIAL_POLICE_REPORTS,
       plans: INITIAL_PLANS,
-      expenses: [
-        { id: 'exp-1', title: 'رسوم قيد دعوى ورسوم دمغة', amount: 650, date: '2026-06-12', case_id: 'case-201' },
-        { id: 'exp-2', title: 'إعلانات محضري الأسرة', amount: 300, date: '2026-07-01', case_id: 'case-202' },
-        { id: 'exp-3', title: 'أمانة خبير حسابي بالمحكمة الاقتصادية', amount: 2200, date: '2026-05-15', case_id: 'case-203' },
-      ],
-      contracts: [
-        {
-          id: 'ci-101',
-          template_id: 'tmpl-retainer-lawyer',
-          template_name: 'عقد اتفاق وتحديد أتعاب محاماة واستشارات قانونية ووكالة قضائية',
-          case_id: 'case-201',
-          case_title: 'دعوى تعويض عن إصابة عمل وفصل تعسفي',
-          client_id: 'client-101',
-          client_name: 'أحمد محمود إسماعيل',
-          status: 'signed',
-          final_html: '<p>عقد أتعاب محاماة موثق وموقع بين مكتب المحاماة والموكل أحمد محمود إسماعيل في دعوى التعويض رقم 1842 لسنة 2026 عمال شمال القاهرة.</p>',
-          filled_data: {
-            second_party_name: 'أحمد محمود إسماعيل',
-            second_party_id: '28501011234567',
-            case_number: '1842 لسنة 2026 عمال شمال القاهرة',
-            contract_value: '15000',
-            down_payment: '5000',
-            lawyer_name: 'محمد السيد المحامي',
-          },
-          created_at: '2026-06-12T10:00:00Z',
-          updated_at: '2026-06-12T10:00:00Z',
-        },
-        {
-          id: 'ci-102',
-          template_id: 'tmpl-settlement-court',
-          template_name: 'إقرار تصالح وتنازل نهائي عن جنحة / دعوى قضائية',
-          case_id: '01a085f6-51f3-7bf7-bf6e-d58b1182af70',
-          case_title: 'دعوى فسخ عقد توريد ومطالبة بتعويض',
-          client_id: '01a085e6-e9ad-71b6-95f2-766fc4418bdf',
-          client_name: 'شركة عامر للتجارة الدولية',
-          status: 'under_review',
-          final_html: '<p>مشروع إقرار تصالح وتنازل نهائي عن الدعوى رقم 3542523 لسنة 2026 مدني بورسعيد بعد التراضي والوفاء بالالتزامات.</p>',
-          filled_data: {
-            first_party_name: 'شركة عامر للتجارة الدولية',
-            second_party_name: 'شركة الصفا للشحن والتفريغ',
-            case_number: '3542523 لسنة 2026 مدني بورسعيد',
-          },
-          created_at: '2026-09-10T14:00:00Z',
-          updated_at: '2026-09-10T14:00:00Z',
-        },
-      ],
+      expenses: [],
+      contracts: [],
     };
   }
 
@@ -1248,6 +717,54 @@ class Store {
   }
 
   // Reset to initial state
+  public getUser(): User {
+    return this.data.user;
+  }
+
+  public setUser(user: User) {
+    this.data.user = user;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public getFirm(): Firm {
+    return this.data.firm;
+  }
+
+  public setFirm(firm: Firm) {
+    this.data.firm = firm;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public setMembers(members: FirmMember[]) {
+    this.data.members = members;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public setRoles(roles: FirmRole[]) {
+    this.data.roles = roles;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public setContracts(contracts: ContractInstance[]) {
+    this.data.contracts = contracts;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public setExpenses(expenses: any[]) {
+    this.data.expenses = expenses;
+    this.persist(this.data);
+    this.notify();
+  }
+
+  public clearAll() {
+    this.reset();
+  }
+
   public reset() {
     this.data = this.getInitialData();
     this.notify();

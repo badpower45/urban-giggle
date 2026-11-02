@@ -18,9 +18,11 @@ import {
   Clock,
   CheckCircle2,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import { appStore } from "../../lib/api/store";
 import { supabaseService } from "../../lib/supabase/client";
+import { openBaseeraTour } from "../common/OnboardingTour";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -121,6 +123,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <Globe className="w-3.5 h-3.5 text-secondary" />
             <span>الموقع التعريفي</span>
           </Link>
+
+          <button
+            type="button"
+            onClick={() => openBaseeraTour()}
+            className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 px-2.5 py-1.5 rounded-lg transition-all shadow-xs"
+            title="بدء الجولة التفاعلية للتعرف على النظام"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>جولة في النظام</span>
+          </button>
         </div>
 
         {/* Center Search Input (Triggers Global Command Palette) */}
@@ -186,6 +198,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               <DropdownMenuItem onClick={() => navigate("/firm/scanner")}>
                 <Search className="w-4 h-4 ml-2 text-secondary" />
                 مسح مستند ضوئي ذكي
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => openBaseeraTour()}>
+                <Sparkles className="w-4 h-4 ml-2 text-amber-500" />
+                جولة تعريفية بالنظام
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -18,6 +18,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { usePlatformStore } from '../../lib/platformStore';
 import { useToast } from '../../components/common/Toast';
+import { supabaseService } from '../../lib/supabase/client';
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -42,19 +43,50 @@ export const AdminLoginPage: React.FC = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      // 1. Try Supabase Auth check first
+      if (supabaseService.isConfigured() && supabaseService.client) {
+        const { data, error } = await supabaseService.signIn(email.trim(), password);
+        if (!error && data.user) {
+          const { data: profile } = await supabaseService.client
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .maybeSingle();
+
+          if (profile?.is_super_admin) {
+            loginSuperAdmin(email, password, rememberMe);
+            setLoading(false);
+            showToast(`مرحباً بك مجدداً ${profile.full_name || 'سعادة المستشار المشرف'}! جاري فتح لوحة الإدارة المركزية...`, 'success');
+            navigate('/super-admin');
+            return;
+          }
+        }
+      }
+
+      // 2. Standard platform credentials check
       const res = loginSuperAdmin(email, password, rememberMe);
       setLoading(false);
 
       if (!res.success) {
-        setErrorMsg(res.error || 'بيانات الدخول غير صحيحة.');
+        setErrorMsg(res.error || 'بيانات الدخول غير صحيحة أو ليس لديك صلاحيات المشرف العام.');
         showToast('تعذر التحقق من صلاحيات المشرف', 'error');
         return;
       }
 
       showToast(`مرحباً بك مجدداً ${res.user?.fullName}! جاري فتح لوحة الإدارة...`, 'success');
       navigate('/super-admin');
-    }, 600);
+    } catch (err: any) {
+      const res = loginSuperAdmin(email, password, rememberMe);
+      setLoading(false);
+      if (res.success) {
+        showToast(`مرحباً بك مجدداً ${res.user?.fullName}! جاري فتح لوحة الإدارة...`, 'success');
+        navigate('/super-admin');
+      } else {
+        setErrorMsg('حدث خطأ أثناء التحقق من بيانات الدخول.');
+        showToast('تعذر التحقق من صلاحيات المشرف', 'error');
+      }
+    }
   };
 
   const setCredentials = (demoEmail: string, demoPass: string) => {

@@ -25,7 +25,7 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured()
 
 /**
  * Cloud / Local Unified Data Service
- * Provides full bi-directional CRUD, cloud hydration, connection testing, and offline fallback
+ * Provides full bi-directional CRUD, cloud hydration, multi-tenant isolation, and real Supabase Auth
  */
 export const supabaseService = {
   isConfigured: isSupabaseConfigured,
@@ -71,12 +71,90 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // Auth Helpers
+  // Auth & Multi-Tenancy Profile Helpers
   // ============================================================================
   async getCurrentUser() {
     if (!supabase) return null;
     const { data: { user } } = await supabase.auth.getUser();
     return user;
+  },
+
+  async getCurrentUserProfile() {
+    if (!supabase) return null;
+    try {
+      const { data: { user }, error: uErr } = await supabase.auth.getUser();
+      if (uErr || !user) return null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*, firms(*)')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      return {
+        user,
+        profile,
+        firm: profile?.firms || null,
+      };
+    } catch (err) {
+      console.warn('[Supabase] getCurrentUserProfile error:', err);
+      return null;
+    }
+  },
+
+  async getCurrentUserFirmId(): Promise<string | null> {
+    const localFirm = appStore.getFirm();
+    if (localFirm?.id && localFirm.id !== 'firm-default' && !localFirm.id.startsWith('firm-default')) {
+      return localFirm.id;
+    }
+    const up = await this.getCurrentUserProfile();
+    return up?.firm?.id || up?.profile?.firm_id || null;
+  },
+
+  async syncSessionToStore(): Promise<boolean> {
+    if (!supabase) return false;
+    try {
+      const up = await this.getCurrentUserProfile();
+      if (!up || !up.user) return false;
+
+      const { user, profile, firm } = up;
+
+      if (profile) {
+        appStore.setUser({
+          id: user.id,
+          full_name: profile.full_name || user.email?.split('@')[0] || 'المحامي',
+          email: user.email || profile.email || '',
+          avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          member_since: profile.created_at ? profile.created_at.split('T')[0] : '2026-01-01',
+          auth_provider: 'email',
+          two_fa_enabled: profile.two_fa_enabled || false,
+        });
+      }
+
+      if (firm) {
+        appStore.setFirm({
+          id: firm.id,
+          name: firm.name,
+          logo_url: firm.logo_url || '/logo.svg',
+          created_at: firm.created_at || new Date().toISOString(),
+        });
+      }
+
+      // Fetch tenant data from Supabase for this firm
+      await this.syncAllFromCloud(firm?.id || profile?.firm_id);
+      return true;
+    } catch (err) {
+      console.warn('[Supabase] syncSessionToStore error:', err);
+      return false;
+    }
+  },
+
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    if (!supabase) return { unsubscribe: () => {} };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
+    return subscription;
   },
 
   async signIn(email: string, password: string) {
@@ -101,20 +179,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // CASES (Full CRUD)
+  // CASES (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchCases(): Promise<Case[] | null> {
+  async fetchCases(targetFirmId?: string): Promise<Case[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('cases')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('cases').select('*').order('created_at', { ascending: false });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch cases:', error.message);
         return null;
       }
-      return data as Case[];
+      return (data || []) as Case[];
     } catch (err) {
       console.warn('[Supabase] fetchCases exception:', err);
       return null;
@@ -124,9 +204,14 @@ export const supabaseService = {
   async insertCase(newCase: any): Promise<Case | null> {
     if (!supabase) return null;
     try {
+      const firmId = newCase.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newCase,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('cases')
-        .insert([newCase])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -176,20 +261,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // CLIENTS (Full CRUD)
+  // CLIENTS (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchClients(): Promise<Client[] | null> {
+  async fetchClients(targetFirmId?: string): Promise<Client[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('clients').select('*').order('created_at', { ascending: false });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch clients:', error.message);
         return null;
       }
-      return data as Client[];
+      return (data || []) as Client[];
     } catch (err) {
       console.warn('[Supabase] fetchClients exception:', err);
       return null;
@@ -199,9 +286,14 @@ export const supabaseService = {
   async insertClient(newClient: any): Promise<Client | null> {
     if (!supabase) return null;
     try {
+      const firmId = newClient.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newClient,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('clients')
-        .insert([newClient])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -251,20 +343,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // SESSIONS (Full CRUD)
+  // SESSIONS (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchSessions(): Promise<CourtSession[] | null> {
+  async fetchSessions(targetFirmId?: string): Promise<CourtSession[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('case_sessions')
-        .select('*')
-        .order('session_date', { ascending: true });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('case_sessions').select('*').order('session_date', { ascending: true });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch sessions:', error.message);
         return null;
       }
-      return data as CourtSession[];
+      return (data || []) as CourtSession[];
     } catch (err) {
       console.warn('[Supabase] fetchSessions exception:', err);
       return null;
@@ -274,9 +368,14 @@ export const supabaseService = {
   async insertSession(newSession: any): Promise<CourtSession | null> {
     if (!supabase) return null;
     try {
+      const firmId = newSession.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newSession,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('case_sessions')
-        .insert([newSession])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -326,20 +425,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // DEADLINES (Full CRUD)
+  // DEADLINES (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchDeadlines(): Promise<LegalDeadline[] | null> {
+  async fetchDeadlines(targetFirmId?: string): Promise<LegalDeadline[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('legal_deadlines')
-        .select('*')
-        .order('deadline_date', { ascending: true });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('legal_deadlines').select('*').order('deadline_date', { ascending: true });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch deadlines:', error.message);
         return null;
       }
-      return data as LegalDeadline[];
+      return (data || []) as LegalDeadline[];
     } catch (err) {
       console.warn('[Supabase] fetchDeadlines exception:', err);
       return null;
@@ -349,9 +450,14 @@ export const supabaseService = {
   async insertDeadline(newDeadline: any): Promise<LegalDeadline | null> {
     if (!supabase) return null;
     try {
+      const firmId = newDeadline.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newDeadline,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('legal_deadlines')
-        .insert([newDeadline])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -401,20 +507,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // TASKS (Full CRUD)
+  // TASKS (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchTasks(): Promise<Task[] | null> {
+  async fetchTasks(targetFirmId?: string): Promise<Task[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('due_date', { ascending: true });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('tasks').select('*').order('due_date', { ascending: true });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch tasks:', error.message);
         return null;
       }
-      return data as Task[];
+      return (data || []) as Task[];
     } catch (err) {
       console.warn('[Supabase] fetchTasks exception:', err);
       return null;
@@ -424,9 +532,14 @@ export const supabaseService = {
   async insertTask(newTask: any): Promise<Task | null> {
     if (!supabase) return null;
     try {
+      const firmId = newTask.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newTask,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('tasks')
-        .insert([newTask])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -476,20 +589,22 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // POLICE REPORTS (Full CRUD)
+  // POLICE REPORTS (Full CRUD with Multi-Tenancy)
   // ============================================================================
-  async fetchPoliceReports(): Promise<PoliceReport[] | null> {
+  async fetchPoliceReports(targetFirmId?: string): Promise<PoliceReport[] | null> {
     if (!supabase) return null;
     try {
-      const { data, error } = await supabase
-        .from('police_reports')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
+      let query = supabase.from('police_reports').select('*').order('created_at', { ascending: false });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.warn('[Supabase] Failed to fetch police reports:', error.message);
         return null;
       }
-      return data as PoliceReport[];
+      return (data || []) as PoliceReport[];
     } catch (err) {
       console.warn('[Supabase] fetchPoliceReports exception:', err);
       return null;
@@ -499,9 +614,14 @@ export const supabaseService = {
   async insertPoliceReport(newReport: any): Promise<PoliceReport | null> {
     if (!supabase) return null;
     try {
+      const firmId = newReport.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newReport,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('police_reports')
-        .insert([newReport])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -553,10 +673,14 @@ export const supabaseService = {
   // ============================================================================
   // POWER OF ATTORNEY (POAs)
   // ============================================================================
-  async fetchPoas(clientId?: string): Promise<PowerOfAttorney[] | null> {
+  async fetchPoas(clientId?: string, targetFirmId?: string): Promise<PowerOfAttorney[] | null> {
     if (!supabase) return null;
     try {
+      const firmId = targetFirmId || (await this.getCurrentUserFirmId());
       let query = supabase.from('power_of_attorney').select('*').order('poa_date', { ascending: false });
+      if (firmId) {
+        query = query.eq('firm_id', firmId);
+      }
       if (clientId) {
         query = query.eq('client_id', clientId);
       }
@@ -565,7 +689,7 @@ export const supabaseService = {
         console.warn('[Supabase] Failed to fetch POAs:', error.message);
         return null;
       }
-      return data as PowerOfAttorney[];
+      return (data || []) as PowerOfAttorney[];
     } catch (err) {
       console.warn('[Supabase] fetchPoas exception:', err);
       return null;
@@ -575,9 +699,14 @@ export const supabaseService = {
   async insertPoa(newPoa: any): Promise<PowerOfAttorney | null> {
     if (!supabase) return null;
     try {
+      const firmId = newPoa.firm_id || (await this.getCurrentUserFirmId());
+      const payload = {
+        ...newPoa,
+        ...(firmId ? { firm_id: firmId } : {}),
+      };
       const { data, error } = await supabase
         .from('power_of_attorney')
-        .insert([newPoa])
+        .insert([payload])
         .select()
         .single();
       if (error) {
@@ -607,51 +736,51 @@ export const supabaseService = {
   },
 
   // ============================================================================
-  // Full Cloud Hydration (Sync Supabase -> Local Store)
+  // Full Cloud Hydration (Sync Supabase -> Local Store for tenant firm)
   // ============================================================================
-  async syncAllFromCloud(): Promise<{ success: boolean; syncedCount: number; error?: string }> {
+  async syncAllFromCloud(targetFirmId?: string): Promise<{ success: boolean; syncedCount: number; error?: string }> {
     if (!supabase) {
       return { success: false, syncedCount: 0, error: 'Supabase is not configured' };
     }
 
     try {
       const [cases, clients, sessions, deadlines, tasks, reports, poas] = await Promise.all([
-        this.fetchCases(),
-        this.fetchClients(),
-        this.fetchSessions(),
-        this.fetchDeadlines(),
-        this.fetchTasks(),
-        this.fetchPoliceReports(),
-        this.fetchPoas(),
+        this.fetchCases(targetFirmId),
+        this.fetchClients(targetFirmId),
+        this.fetchSessions(targetFirmId),
+        this.fetchDeadlines(targetFirmId),
+        this.fetchTasks(targetFirmId),
+        this.fetchPoliceReports(targetFirmId),
+        this.fetchPoas(undefined, targetFirmId),
       ]);
 
       let totalSynced = 0;
 
-      if (cases && cases.length > 0) {
+      if (cases !== null) {
         appStore.setCases(cases);
         totalSynced += cases.length;
       }
-      if (clients && clients.length > 0) {
+      if (clients !== null) {
         appStore.setClients(clients);
         totalSynced += clients.length;
       }
-      if (sessions && sessions.length > 0) {
+      if (sessions !== null) {
         appStore.setSessions(sessions);
         totalSynced += sessions.length;
       }
-      if (deadlines && deadlines.length > 0) {
+      if (deadlines !== null) {
         appStore.setDeadlines(deadlines);
         totalSynced += deadlines.length;
       }
-      if (tasks && tasks.length > 0) {
+      if (tasks !== null) {
         appStore.setTasks(tasks);
         totalSynced += tasks.length;
       }
-      if (reports && reports.length > 0) {
+      if (reports !== null) {
         appStore.setPoliceReports(reports);
         totalSynced += reports.length;
       }
-      if (poas && poas.length > 0) {
+      if (poas !== null) {
         appStore.setPoas(poas);
         totalSynced += poas.length;
       }
@@ -660,145 +789,6 @@ export const supabaseService = {
     } catch (err: any) {
       console.warn('[Supabase] syncAllFromCloud error:', err);
       return { success: false, syncedCount: 0, error: err.message };
-    }
-  },
-
-  // ============================================================================
-  // Seed Demo Data into Cloud (When database is empty)
-  // ============================================================================
-  async seedCloudData(): Promise<{ success: boolean; count: number; error?: string }> {
-    if (!supabase) {
-      return { success: false, count: 0, error: 'Supabase is not configured' };
-    }
-
-    try {
-      const firmId = '01a08460-df3a-70c0-9a46-f3497eced7c7';
-
-      // 1. Insert Firm
-      await supabase.from('firms').upsert({
-        id: firmId,
-        name: 'مكتب محمد السيد للمحاماة والاستشارات القانونية',
-        logo_url: '/logo.webp',
-        phone: '01012345678',
-        email: 'elezabybode375@gmail.com',
-        address: '14 شارع مصطفى النحاس، مدينة نصر، القاهرة',
-        subscription_status: 'active',
-        subscription_plan: 'enterprise',
-      });
-
-      // 2. Insert Sample Clients
-      const sampleClients = [
-        {
-          id: 'client-101',
-          firm_id: firmId,
-          full_name: 'أحمد مصطفى كامل',
-          client_type: 'individual',
-          national_id: '29008150102432',
-          occupation: 'مهندس مدني حر',
-          phone: '01098765432',
-          email: 'ahmed.mostafa@gmail.com',
-          address: 'حي السفارات، مدينة نصر، القاهرة',
-          notes: 'موكل دائم للمكتب منذ 2024',
-        },
-        {
-          id: 'client-102',
-          firm_id: firmId,
-          full_name: 'شركة النيل للتجارة والمقاولات (ش.م.م)',
-          client_type: 'company',
-          company_reg: 'س.ت 104928 استثمار القاهرة',
-          occupation: 'مقاولات عامة وتوريدات',
-          phone: '0226789123',
-          email: 'legal@niletrade.com',
-          address: 'المحور المركزي، التجمع الخامس، القاهرة الجديدة',
-          notes: 'عقد استشارات سنوي سارٍ',
-        },
-        {
-          id: 'client-103',
-          firm_id: firmId,
-          full_name: 'فاطمة عبد الرحمن الصاوي',
-          client_type: 'individual',
-          national_id: '29403210108921',
-          occupation: 'سيدة أعمال',
-          phone: '01223344556',
-          email: 'fatma.sawi@outlook.com',
-          address: 'شارع مصدق، الدقي، الجيزة',
-          notes: 'دعوى بطلان عقد بيع وميراث',
-        },
-      ];
-      await supabase.from('clients').upsert(sampleClients);
-
-      // 3. Insert Sample Cases
-      const sampleCases = [
-        {
-          id: 'case-201',
-          firm_id: firmId,
-          client_id: 'client-101',
-          client_name: 'أحمد مصطفى كامل',
-          court_name: 'محكمة شمال القاهرة الابتدائية',
-          court_governorate: 'القاهرة',
-          case_type_name: 'مدني كلي',
-          title: 'دعوى إلزام بتعويض عن إخلال بالتزامات تعاقدية',
-          case_number: '1842',
-          case_year: 2026,
-          circuit: 'الدائرة 7 مدني كلي',
-          opponent_name: 'محمود الشناوي عبد ربه',
-          opponent_lawyer: 'أ. حسام فوزي',
-          client_role: 'plaintiff',
-          filing_date: '2026-01-15',
-          status: 'active',
-          total_fees: 25000,
-          total_paid: 15000,
-        },
-        {
-          id: 'case-202',
-          firm_id: firmId,
-          client_id: 'client-102',
-          client_name: 'شركة النيل للتجارة والمقاولات (ش.م.م)',
-          court_name: 'محكمة استئناف القاهرة (الدائرة التجارية)',
-          court_governorate: 'القاهرة',
-          case_type_name: 'تجاري استئناف',
-          title: 'استئناف حكم تظلم أمر أداء شيك بنكي',
-          case_number: '394',
-          case_year: 2026,
-          circuit: 'الدائرة 14 تجاري استئناف',
-          opponent_name: 'البنك الأهلي المصري (فرع النيل)',
-          opponent_lawyer: 'الشؤون القانونية للبنك الأهلي',
-          client_role: 'appellant',
-          filing_date: '2026-02-01',
-          status: 'active',
-          total_fees: 40000,
-          total_paid: 30000,
-        },
-        {
-          id: 'case-203',
-          firm_id: firmId,
-          client_id: 'client-103',
-          client_name: 'فاطمة عبد الرحمن الصاوي',
-          court_name: 'محكمة جنوب الجيزة الابتدائية',
-          court_governorate: 'الجيزة',
-          case_type_name: 'مدني عقاري',
-          title: 'دعوى صحة ونفاذ عقد بيع وحدة سكنية بالشيخ زايد',
-          case_number: '920',
-          case_year: 2026,
-          circuit: 'الدائرة 3 مدني مساكن',
-          opponent_name: 'طارق ممدوح النحاس',
-          opponent_lawyer: 'أ. عماد عبد الحليم',
-          client_role: 'plaintiff',
-          filing_date: '2026-02-14',
-          status: 'reserved_for_ruling',
-          total_fees: 18000,
-          total_paid: 18000,
-        },
-      ];
-      await supabase.from('cases').upsert(sampleCases);
-
-      // 4. Re-sync to store
-      await this.syncAllFromCloud();
-
-      return { success: true, count: sampleClients.length + sampleCases.length };
-    } catch (err: any) {
-      console.warn('[Supabase] seedCloudData error:', err);
-      return { success: false, count: 0, error: err.message };
     }
   },
 

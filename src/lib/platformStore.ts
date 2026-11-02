@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabaseService } from './supabase/client';
 import {
   PlatformSettings,
   AdminSubscriptionPlan,
@@ -524,9 +525,10 @@ export const platformStorage = {
     notify();
   },
   addFirm(firmData: Omit<TenantFirm, 'id' | 'createdAt' | 'casesCount' | 'clientsCount' | 'usersCount' | 'storageUsedMb'>) {
+    const newId = `firm-${Date.now()}`;
     const newFirm: TenantFirm = {
       ...firmData,
-      id: `firm-${Date.now()}`,
+      id: newId,
       createdAt: new Date().toISOString(),
       casesCount: 0,
       clientsCount: 0,
@@ -535,6 +537,30 @@ export const platformStorage = {
     };
     const current = this.getFirms();
     this.saveFirms([newFirm, ...current]);
+
+    // Push to Supabase if configured
+    if (supabaseService.isConfigured() && supabaseService.client) {
+      supabaseService.client.from('firms').insert([{
+        id: newId,
+        name: firmData.name,
+        slug: firmData.slug || newId,
+        phone: firmData.ownerPhone,
+        email: firmData.ownerEmail,
+        city: firmData.city,
+        address: firmData.address,
+        subscription_status: firmData.subscriptionStatus,
+        subscription_plan: firmData.subscriptionPlan,
+        subscription_cycle: firmData.billingCycle,
+        max_users: firmData.maxUsers,
+        max_storage_gb: firmData.maxStorageGb,
+        max_cases: 10000,
+        is_verified: true,
+        notes: `المالك: ${firmData.ownerName} | ${firmData.notes || ''}`,
+      }]).then(({ error }) => {
+        if (error) console.warn('[Supabase firms insert notice]:', error.message);
+      });
+    }
+
     return newFirm;
   },
   updateFirm(id: string, data: Partial<TenantFirm>) {
@@ -775,6 +801,45 @@ export function usePlatformStore() {
       platformStorage.updatePlanPrice(id, monthly, annual),
 
     // Firm actions
+    syncFirmsFromSupabase: async () => {
+      if (!supabaseService.isConfigured() || !supabaseService.client) return;
+      try {
+        const { data: dbFirms } = await supabaseService.client
+          .from('firms')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (dbFirms && dbFirms.length > 0) {
+          const mapped: TenantFirm[] = dbFirms.map((f: any) => ({
+            id: f.id,
+            name: f.name,
+            slug: f.slug || `firm-${f.id.slice(0, 8)}`,
+            ownerName: f.notes?.includes('المالك: ') ? f.notes.split('المالك: ')[1]?.split('|')[0]?.trim() : 'مدير المكتب',
+            ownerEmail: f.email || 'lawyer@baseera.legal',
+            ownerPhone: f.phone || '',
+            city: f.city || 'القاهرة',
+            address: f.address || '',
+            subscriptionPlan: f.subscription_plan || 'office',
+            subscriptionStatus: f.subscription_status || 'active',
+            billingCycle: f.subscription_cycle || 'monthly',
+            trialEndsAt: f.trial_ends_at,
+            subscriptionEndsAt: f.current_period_end,
+            createdAt: f.created_at,
+            casesCount: f.max_cases || 0,
+            clientsCount: 0,
+            usersCount: f.max_users || 1,
+            storageUsedMb: 0,
+            maxUsers: f.max_users || 10,
+            maxStorageGb: f.max_storage_gb || 50,
+            isVerified: f.is_verified ?? true,
+            notes: f.notes || '',
+          }));
+          platformStorage.saveFirms(mapped);
+        }
+      } catch (err) {
+        console.warn('[syncFirmsFromSupabase] error:', err);
+      }
+    },
     addFirm: (f: Parameters<typeof platformStorage.addFirm>[0]) => platformStorage.addFirm(f),
     updateFirm: (id: string, data: Partial<TenantFirm>) => platformStorage.updateFirm(id, data),
     extendFirmTrial: (id: string, days?: number) => platformStorage.extendFirmTrial(id, days),
