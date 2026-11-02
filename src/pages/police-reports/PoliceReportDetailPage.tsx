@@ -45,9 +45,10 @@ export const PoliceReportDetailPage: React.FC = () => {
       const r = await apiClient.getPoliceReportById(id);
       setReport(r);
       const allCases = await apiClient.getCases();
-      setCases(allCases.filter((c) => c.client_id === r.client_id));
+      setCases(allCases);
       if (allCases.length > 0) {
-        setSelectedCaseId(allCases[0].id);
+        const defaultChoice = allCases.find((c) => c.client_id === r.client_id) || allCases[0];
+        setSelectedCaseId(defaultChoice.id);
       }
     } catch (err) {
       console.error(err);

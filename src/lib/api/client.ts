@@ -16,6 +16,7 @@ import {
   FirmRole,
   PowerOfAttorney,
 } from '../../types';
+import { ContractInstance } from '../../types/contract';
 
 // Delay simulation for realistic UX loading states
 const delay = (ms: number = 80) => new Promise((res) => setTimeout(res, ms));
@@ -612,5 +613,41 @@ export const apiClient = {
   async getPlans(): Promise<SubscriptionPlan[]> {
     await delay();
     return appStore.getState().plans;
+  },
+
+  // ============================================================================
+  // CONTRACTS & CASE AGREEMENTS
+  // ============================================================================
+  async getContracts(caseId?: string): Promise<ContractInstance[]> {
+    await delay();
+    return appStore.getContracts(caseId);
+  },
+
+  async createContract(data: Omit<ContractInstance, 'id' | 'created_at' | 'updated_at'> & { id?: string }): Promise<ContractInstance> {
+    await delay();
+    return appStore.addContract(data);
+  },
+
+  async deleteContract(id: string): Promise<boolean> {
+    await delay();
+    return appStore.deleteContract(id);
+  },
+
+  // ============================================================================
+  // CASE EXPENSES & DISBURSEMENTS
+  // ============================================================================
+  async getExpenses(caseId?: string) {
+    await delay();
+    return appStore.getExpenses(caseId);
+  },
+
+  async addExpense(data: { title: string; amount: number; date: string; case_id?: string }) {
+    await delay();
+    return appStore.addExpense(data);
+  },
+
+  async getPoliceReportsByCase(caseId: string): Promise<PoliceReport[]> {
+    await delay();
+    return appStore.getPoliceReportsByCase(caseId);
   },
 };

@@ -11,6 +11,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
 import { CourtSession, LegalDeadline } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { formatDate } from "../../lib/utils";
@@ -26,6 +27,11 @@ export const CalendarPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const unsubscribe = appStore.subscribe(() => {
+      setSessions(appStore.getSessions());
+      setDeadlines(appStore.getDeadlines());
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadData = async () => {
@@ -95,8 +101,8 @@ export const CalendarPage: React.FC = () => {
     calendarDays.push({ dateStr: dStr, dayNum: d, isCurrentMonth: false });
   }
 
-  const selectedSessions = sessions.filter((s) => s.session_date === selectedDayStr);
-  const selectedDeadlines = deadlines.filter((d) => d.deadline_date === selectedDayStr);
+  const selectedSessions = sessions.filter((s) => (s.session_date || '').split('T')[0] === selectedDayStr);
+  const selectedDeadlines = deadlines.filter((d) => (d.deadline_date || '').split('T')[0] === selectedDayStr);
 
   return (
     <div className="max-w-6xl mx-auto space-y-4 p-3 sm:space-y-5 sm:p-6">
@@ -148,8 +154,8 @@ export const CalendarPage: React.FC = () => {
         {/* Days Grid */}
         <div className="grid grid-cols-7 divide-x divide-y divide-border rtl:divide-x-reverse">
           {calendarDays.map((cd, index) => {
-            const daySessions = sessions.filter((s) => s.session_date === cd.dateStr);
-            const dayDeadlines = deadlines.filter((d) => d.deadline_date === cd.dateStr);
+            const daySessions = sessions.filter((s) => (s.session_date || '').split('T')[0] === cd.dateStr);
+            const dayDeadlines = deadlines.filter((d) => (d.deadline_date || '').split('T')[0] === cd.dateStr);
             const isSelected = cd.dateStr === selectedDayStr;
             const isToday = cd.dateStr === new Date().toISOString().split("T")[0];
 

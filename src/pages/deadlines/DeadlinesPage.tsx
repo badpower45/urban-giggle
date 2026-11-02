@@ -10,8 +10,12 @@ import {
   CheckCircle,
   ArrowLeft,
   X,
+  Scale,
+  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
 import { LegalDeadline, Case } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -27,20 +31,28 @@ import {
   getDaysRemaining,
   getDeadlineUrgencyLabel,
 } from "../../lib/utils";
+import {
+  EGYPTIAN_LEGAL_PROCEDURE_RULES,
+  calculateStatutoryDeadline,
+} from "../../lib/data/egyptianLegalWorkflows";
 
 export const DeadlinesPage: React.FC = () => {
   const [deadlines, setDeadlines] = useState<LegalDeadline[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [filter, setFilter] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
-  // Add Deadline Calculator Dialog
+  // Add Deadline Dialog State
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCaseId, setSelectedCaseId] = useState("");
-  const [deadlineType, setDeadlineType] = useState("استئناف");
-  const [judgmentDate, setJudgmentDate] = useState("");
+  const [selectedRuleId, setSelectedRuleId] = useState(EGYPTIAN_LEGAL_PROCEDURE_RULES[0].id);
+  const [deadlineType, setDeadlineType] = useState(EGYPTIAN_LEGAL_PROCEDURE_RULES[0].name);
+  const [judgmentDate, setJudgmentDate] = useState(new Date().toISOString().split("T")[0]);
   const [calculatedDate, setCalculatedDate] = useState("");
   const [description, setDescription] = useState("");
+  const [statutoryCitation, setStatutoryCitation] = useState(EGYPTIAN_LEGAL_PROCEDURE_RULES[0].legalArticle);
+  const [holidayExtended, setHolidayExtended] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const loadData = async () => {
@@ -62,61 +74,76 @@ export const DeadlinesPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    // Live subscription to reactive store updates
+    const unsubscribe = appStore.subscribe(() => {
+      setDeadlines(appStore.getDeadlines());
+      setCases(appStore.getCases());
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Calculate deadline date automatically based on statutory rule
+  // Recalculate deadline date based on chosen rule and start/judgment date
   useEffect(() => {
-    if (!judgmentDate) return;
-    const base = new Date(judgmentDate);
-    if (isNaN(base.getTime())) return;
+    const rule = EGYPTIAN_LEGAL_PROCEDURE_RULES.find((r) => r.id === selectedRuleId);
+    if (!rule) return;
 
-    let daysToAdd = 15;
-    if (deadlineType === "استئناف") daysToAdd = 15;
-    else if (deadlineType === "طعن بالنقض") daysToAdd = 60;
-    else if (deadlineType === "معارضة") daysToAdd = 8;
-    else if (deadlineType === "مذكرة دفاع") daysToAdd = 3;
-    else if (deadlineType === "تظلم أمر أداء") daysToAdd = 10;
+    setDeadlineType(rule.name);
+    setStatutoryCitation(rule.legalArticle);
 
-    base.setDate(base.getDate() + daysToAdd);
-    setCalculatedDate(base.toISOString().split("T")[0]);
-  }, [judgmentDate, deadlineType]);
+    if (judgmentDate) {
+      const calc = calculateStatutoryDeadline(judgmentDate, rule.days);
+      setCalculatedDate(calc.targetDate);
+      setHolidayExtended(calc.wasExtended);
+    }
+  }, [selectedRuleId, judgmentDate]);
 
   const handleCreateDeadline = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCaseId || !calculatedDate) return;
+    if (!selectedCaseId) {
+      alert("يرجى اختيار القضية المرتبطة بالميعاد");
+      return;
+    }
+    if (!calculatedDate) {
+      alert("يرجى تحديد تاريخ استحقاق الميعاد");
+      return;
+    }
 
     setSubmitting(true);
     const matchedCase = cases.find((c) => c.id === selectedCaseId);
+    const daysLeft = getDaysRemaining(calculatedDate);
+    const urgency = daysLeft <= 2 ? "critical" : daysLeft <= 7 ? "high" : "medium";
 
     try {
-      await apiClient.createDeadline({
+      const created = await apiClient.createDeadline({
         case_id: selectedCaseId,
         case_title: matchedCase?.title,
         type: deadlineType,
         deadline_date: calculatedDate,
-        urgency: "critical",
-        description: description || `ميعاد قانوني محسوب من تاريخ الحكم ${judgmentDate}`,
+        urgency,
+        description:
+          description ||
+          `${statutoryCitation ? `وفقاً لـ (${statutoryCitation}). ` : ""}تاريخ البداية: ${judgmentDate}`,
         is_confirmed: true,
       });
 
       setIsOpen(false);
-      setJudgmentDate("");
-      setCalculatedDate("");
       setDescription("");
+      setFeedbackMsg(`تم تثبيت ميعاد (${created.type}) بنجاح وإدراجه في الأجندة.`);
+      setTimeout(() => setFeedbackMsg(null), 4000);
       await loadData();
     } catch (err) {
       console.error(err);
+      alert("حدث خطأ أثناء حفظ الميعاد");
     } finally {
       setSubmitting(false);
     }
   };
 
   const filterTabs = [
-    { key: "", label: "كل المواعيد" },
-    { key: "critical", label: "حرجة للغاية" },
-    { key: "high", label: "أولوية عالية" },
+    { key: "", label: "كل المواعيد الحالية" },
+    { key: "critical", label: "حرجة للغاية (خلال يومين)" },
+    { key: "high", label: "أولوية عالية (خلال أسبوع)" },
     { key: "medium", label: "متوسطة" },
-    { key: "normal", label: "عادية" },
     { key: "overdue", label: "منقضية" },
   ];
 
@@ -125,30 +152,58 @@ export const DeadlinesPage: React.FC = () => {
     const isOverdue = daysLeft < 0;
 
     if (filter === "overdue") return isOverdue;
-    if (isOverdue) return false;
-    if (!filter) return true;
-    return dl.urgency === filter;
+    if (filter === "critical") return !isOverdue && daysLeft <= 2;
+    if (filter === "high") return !isOverdue && daysLeft > 2 && daysLeft <= 7;
+    if (filter === "medium") return !isOverdue && daysLeft > 7;
+    return true; // All
+  }).sort((a, b) => {
+    // Sort closest deadline first
+    const dateA = new Date(a.deadline_date).getTime();
+    const dateB = new Date(b.deadline_date).getTime();
+    return dateA - dateB;
   });
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 p-4 sm:p-6">
+    <div className="max-w-5xl mx-auto space-y-5 p-4 sm:p-6" dir="rtl">
+      {/* Success Feedback Banner */}
+      {feedbackMsg && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{feedbackMsg}</span>
+          </div>
+          <button onClick={() => setFeedbackMsg(null)} className="text-emerald-600 hover:text-emerald-900">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-9">
         <div className="flex items-center gap-2">
           <h1 className="font-headline text-primary text-2xl font-semibold">
-            المواعيد القانونية والمدد
+            المواعيد القانونية ومدد الطعون
           </h1>
           <CountBadge count={filteredDeadlines.length} isLoading={loading} />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 h-9 px-3.5 rounded-lg bg-secondary text-white text-xs font-semibold hover:bg-secondary/90 transition-colors shadow-2xs"
-        >
-          <Calculator className="w-4 h-4 shrink-0" />
-          <span>حاسبة المدد الإجرائية</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/firm/calendar"
+            className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border bg-white text-xs font-semibold text-primary hover:bg-neutral transition-colors shadow-2xs"
+          >
+            <Calendar className="w-3.5 h-3.5 text-secondary" />
+            <span>عرض في التقويم القضائي</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="flex items-center gap-2 h-9 px-3.5 rounded-lg bg-secondary text-white text-xs font-semibold hover:bg-secondary/90 transition-colors shadow-2xs"
+          >
+            <Calculator className="w-4 h-4 shrink-0" />
+            <span>حاسبة وإضافة ميعاد قانوني</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -160,7 +215,7 @@ export const DeadlinesPage: React.FC = () => {
             onClick={() => setFilter(key)}
             className={`rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors ${
               filter === key
-                ? "bg-primary text-white shadow-xs"
+                ? "bg-primary text-white shadow-xs font-bold"
                 : "bg-white border border-border text-tertiary hover:text-primary hover:bg-neutral"
             }`}
           >
@@ -181,7 +236,7 @@ export const DeadlinesPage: React.FC = () => {
             icon={Clock}
             title="لا توجد مواعيد في هذا التصنيف"
             description="جميع المدد القانونية والطعون مجدولة ومنتظمة في أوقاتها المحددة."
-            actionLabel="حساب ميعاد جديد"
+            actionLabel="حساب وتثبيت ميعاد جديد"
             onAction={() => setIsOpen(true)}
           />
         </div>
@@ -190,6 +245,7 @@ export const DeadlinesPage: React.FC = () => {
           {filteredDeadlines.map((dl) => {
             const daysLeft = getDaysRemaining(dl.deadline_date);
             const isOverdue = daysLeft < 0;
+            const urgency = getDeadlineUrgencyLabel(daysLeft);
 
             return (
               <div
@@ -197,29 +253,23 @@ export const DeadlinesPage: React.FC = () => {
                 className="rounded-xl border border-border bg-white p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-colors space-y-3"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className={`p-1 rounded-md ${
-                        dl.urgency === "critical" || isOverdue
+                        isOverdue || daysLeft <= 2
                           ? "bg-red-50 text-red-600 border border-red-200"
-                          : "bg-amber-50 text-amber-600 border border-amber-200"
+                          : daysLeft <= 7
+                          ? "bg-amber-50 text-amber-600 border border-amber-200"
+                          : "bg-blue-50 text-blue-600 border border-blue-200"
                       }`}
                     >
                       <Clock className="w-3.5 h-3.5" />
                     </span>
                     <span className="text-xs font-bold text-primary">{dl.type}</span>
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
-                        isOverdue
-                          ? "bg-slate-100 text-tertiary"
-                          : dl.urgency === "critical"
-                          ? "bg-red-100 text-red-700"
-                          : dl.urgency === "high"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-blue-50 text-blue-700"
-                      }`}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${urgency.bg} ${urgency.color}`}
                     >
-                      {isOverdue ? "منقضي" : getDeadlineUrgencyLabel(daysLeft).label}
+                      {urgency.label}
                     </span>
                   </div>
 
@@ -257,33 +307,33 @@ export const DeadlinesPage: React.FC = () => {
                     </Link>
                   )}
                   {dl.description && (
-                    <p className="text-xs text-tertiary mt-1">{dl.description}</p>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{dl.description}</p>
                   )}
                 </div>
 
-                {dl.case_id && (
-                  <div className="pt-2 border-t border-border/40 flex items-center justify-end">
-                    <Link
-                      to={`/firm/cases/${dl.case_id}`}
-                      className="text-xs text-secondary hover:underline flex items-center gap-1 font-medium"
-                    >
-                      الانتقال لملف القضية <ArrowLeft className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                )}
+                <div className="pt-1 flex items-center justify-between text-[11px] text-tertiary">
+                  <span className="font-mono">معرف الميعاد: {dl.id}</span>
+                  <Link
+                    to={`/firm/cases/${dl.case_id}`}
+                    className="text-secondary font-semibold hover:underline flex items-center gap-1"
+                  >
+                    <span>فتح ملف القضية</span>
+                    <ArrowLeft className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Calculator Modal */}
+      {/* Add / Calculator Modal */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-md p-6">
+        <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 font-headline text-primary text-base">
               <Calculator className="w-5 h-5 text-secondary" />
-              <span>حاسبة المدد الإجرائية ومواعيد الطعن</span>
+              <span>حاسبة المدد الإجرائية ومواعيد الطعن المصرية</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -300,7 +350,7 @@ export const DeadlinesPage: React.FC = () => {
               >
                 {cases.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.title} ({c.case_number}/{c.case_year})
+                    {c.title} (رقم {c.case_number}/{c.case_year} - {c.court_name})
                   </option>
                 ))}
               </select>
@@ -308,19 +358,24 @@ export const DeadlinesPage: React.FC = () => {
 
             <div>
               <label className="text-xs font-semibold text-primary block mb-1">
-                نوع الإجراء أو الطعن القانوني <span className="text-red-500">*</span>
+                نوع الإجراء أو الطعن القانوني (حسب نصوص القانون المصري) <span className="text-red-500">*</span>
               </label>
               <select
-                value={deadlineType}
-                onChange={(e) => setDeadlineType(e.target.value)}
+                value={selectedRuleId}
+                onChange={(e) => setSelectedRuleId(e.target.value)}
                 className="w-full h-9 px-3 rounded-md border border-border bg-white text-xs text-primary focus:outline-none focus:border-primary"
               >
-                <option value="استئناف">استئناف حكم (15 يوماً)</option>
-                <option value="طعن بالنقض">طعن بالنقض (60 يوماً)</option>
-                <option value="معارضة">معارضة في حكم غيابي (8 أيام)</option>
-                <option value="تظلم أمر أداء">تظلم في أمر أداء (10 أيام)</option>
-                <option value="مذكرة دفاع">مذكرة دفاع ختامية (3 أيام)</option>
+                {EGYPTIAN_LEGAL_PROCEDURE_RULES.map((rule) => (
+                  <option key={rule.id} value={rule.id}>
+                    {rule.name} ({rule.days} يوماً) - {rule.legalArticle}
+                  </option>
+                ))}
               </select>
+              {statutoryCitation && (
+                <p className="text-[11px] text-muted-foreground mt-1 bg-slate-50 p-1.5 rounded border border-slate-200">
+                  <strong>السند القانوني:</strong> {statutoryCitation}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -339,22 +394,31 @@ export const DeadlinesPage: React.FC = () => {
 
               <div>
                 <label className="text-xs font-semibold text-primary block mb-1">
-                  الميعاد النهائي المحسوب
+                  الميعاد النهائي المحسوب <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
-                  readOnly
+                  required
                   value={calculatedDate}
-                  className="w-full h-9 px-3 rounded-md border border-border bg-neutral text-xs text-primary font-bold font-mono focus:outline-none"
+                  onChange={(e) => setCalculatedDate(e.target.value)}
+                  className="w-full h-9 px-3 rounded-md border border-secondary/50 bg-secondary/5 text-xs text-primary font-bold font-mono focus:outline-none focus:ring-1 focus:ring-secondary"
                 />
               </div>
             </div>
 
+            {holidayExtended && (
+              <p className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-md border border-amber-200">
+                ⚠️ <strong>تطبيق المادة 18 مرافعات:</strong> صادف نهاية الميعاد عطلة رسمية (جمعة/سبت)، فامتد الأجل تلقائياً إلى أول يوم عمل (الأحد).
+              </p>
+            )}
+
             <div>
-              <label className="text-xs font-semibold text-primary block mb-1">بيان إضافي</label>
+              <label className="text-xs font-semibold text-primary block mb-1">
+                بيان أو توجيهات لفريق العمل القانوني
+              </label>
               <input
                 type="text"
-                placeholder="رقم الحكم، الدائرة الصادر منها، ملاحظات..."
+                placeholder="رقم الحكم، الدائرة الصادر منها، ملاحظات الإيداع..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full h-9 px-3 rounded-md border border-border bg-white text-xs text-primary focus:outline-none focus:border-primary"
@@ -374,7 +438,7 @@ export const DeadlinesPage: React.FC = () => {
                 disabled={submitting}
                 className="h-9 px-4 rounded-md bg-secondary text-xs font-semibold text-white hover:bg-secondary/90 disabled:opacity-50"
               >
-                {submitting ? "جارٍ التثبيت..." : "تثبيت الميعاد بالقضية"}
+                {submitting ? "جارٍ التثبيت..." : "تثبيت الميعاد بالقضية والأجندة"}
               </button>
             </DialogFooter>
           </form>
@@ -383,4 +447,5 @@ export const DeadlinesPage: React.FC = () => {
     </div>
   );
 };
+
 export default DeadlinesPage;

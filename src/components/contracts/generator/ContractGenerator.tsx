@@ -32,11 +32,17 @@ import {
 } from './ContractPrintView';
 import { ContractDesignSettingsModal } from './ContractDesignSettingsModal';
 import { SAMPLE_CONTRACT_TEMPLATES } from '../mockData';
+import { appStore } from '../../../lib/api/store';
 import { useToast } from '../../common/Toast';
 
 interface ContractGeneratorProps {
   templateId?: string;
   template?: ContractTemplate;
+  initialValues?: Record<string, string>;
+  caseId?: string;
+  caseTitle?: string;
+  clientId?: string;
+  clientName?: string;
   onSaveInstance?: (instance: ContractInstance) => void;
   onBack?: () => void;
 }
@@ -44,6 +50,11 @@ interface ContractGeneratorProps {
 export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
   templateId,
   template: propTemplate,
+  initialValues,
+  caseId,
+  caseTitle,
+  clientId,
+  clientName,
   onSaveInstance,
   onBack,
 }) => {
@@ -60,7 +71,19 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
   }, [propTemplate, templateId]);
 
   // Form State: key-value dictionary for dynamic inputs
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, string>>(() => ({
+    ...(initialValues || {}),
+  }));
+
+  // Synchronize when initialValues change (e.g. when case is loaded)
+  useEffect(() => {
+    if (initialValues && Object.keys(initialValues).length > 0) {
+      setFormData((prev) => ({
+        ...initialValues,
+        ...prev,
+      }));
+    }
+  }, [initialValues]);
   const [highlightFilled, setHighlightFilled] = useState(true);
   const [mobileTab, setMobileTab] = useState<'form' | 'preview'>('form');
   const [isSaved, setIsSaved] = useState(false);
@@ -196,7 +219,10 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
       id: `instance-${Date.now()}`,
       template_id: activeTemplate.id,
       template_name: activeTemplate.name,
-      client_name: formData['second_party_name'] || formData['client_name'] || 'عميل بدون اسم',
+      client_id: clientId,
+      client_name: clientName || formData['second_party_name'] || formData['client_name'] || 'عميل بدون اسم',
+      case_id: caseId,
+      case_title: caseTitle,
       final_html: finalCleanHtml,
       filled_data: formData,
       status: allFilled ? 'finalized' : 'draft',
@@ -204,6 +230,8 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
       updated_at: new Date().toISOString(),
       created_by_name: designSettings.lawyerName || 'المحامي المسئول',
     };
+
+    appStore.addContract(instance);
 
     if (onSaveInstance) {
       onSaveInstance(instance);

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   FileText,
   Plus,
@@ -14,6 +14,7 @@ import {
   Scale,
   Handshake,
   FileSpreadsheet,
+  ArrowRight,
 } from 'lucide-react';
 import { ContractTemplateEditor } from '../../components/contracts/editor/ContractTemplateEditor';
 import { ContractGenerator } from '../../components/contracts/generator/ContractGenerator';
@@ -22,6 +23,7 @@ import { ContractTemplate, ContractInstance, TemplateCategory } from '../../type
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useToast } from '../../components/common/Toast';
+import { appStore } from '../../lib/api/store';
 
 type ViewMode = 'generator' | 'editor' | 'templates_list';
 
@@ -48,9 +50,38 @@ export const ContractBuilderPage: React.FC = () => {
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Linked Case Parameters
+  const caseId = searchParams.get('caseId');
+  const targetCase = useMemo(() => {
+    if (!caseId) return null;
+    return appStore.getCaseById(caseId) || null;
+  }, [caseId]);
+
+  const caseInitialValues = useMemo<Record<string, string>>(() => {
+    const values: Record<string, string> = {};
+    if (!targetCase) return values;
+    const client = targetCase.client_id ? appStore.getClientById(targetCase.client_id) : undefined;
+    const poa = targetCase.client_id ? appStore.getPoas(targetCase.client_id)[0] : undefined;
+    values.contract_date = new Date().toISOString().split('T')[0];
+    values.client_name = targetCase.client_name || '';
+    values.first_party_name = targetCase.client_role === 'plaintiff' ? targetCase.client_name : targetCase.opponent_name;
+    values.first_party_id = targetCase.client_role === 'plaintiff' ? (client?.national_id || client?.company_reg || '') : '';
+    values.first_party_address = targetCase.client_role === 'plaintiff' ? (client?.address || '') : '';
+    values.second_party_name = targetCase.client_role === 'plaintiff' ? targetCase.opponent_name : targetCase.client_name;
+    values.second_party_id = targetCase.client_role === 'defendant' ? (client?.national_id || client?.company_reg || '') : '';
+    values.second_party_address = targetCase.client_role === 'defendant' ? (client?.address || '') : '';
+    values.lawyer_name = targetCase.assigned_to_name || 'محمد السيد المحامي';
+    values.poa_number = poa ? `${poa.poa_number} (${poa.poa_notary_office})` : 'توكيل رسمي عام قضايا ساري';
+    values.case_number = `رقم ${targetCase.case_number} لسنة ${targetCase.case_year} (${targetCase.court_name})`;
+    values.contract_value = String(targetCase.total_fees || 15000);
+    values.down_payment = String(targetCase.total_paid || 5000);
+    values.competent_court = targetCase.court_name || 'محكمة شمال القاهرة الابتدائية';
+    return values;
+  }, [targetCase]);
+
   // Default mode to 'generator' (fill & print) for non-tech users
   const initialMode = (searchParams.get('mode') as ViewMode) || 'generator';
-  const initialTemplateId = searchParams.get('templateId') || SAMPLE_CONTRACT_TEMPLATES[0].id;
+  const initialTemplateId = searchParams.get('templateId') || (caseId ? 'tmpl-retainer-lawyer' : SAMPLE_CONTRACT_TEMPLATES[0].id);
 
   const [viewMode, setViewMode] = useState<ViewMode>(initialMode);
   const [templates, setTemplates] = useState<ContractTemplate[]>(SAMPLE_CONTRACT_TEMPLATES);
@@ -275,12 +306,38 @@ export const ContractBuilderPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Linked Case Banner */}
+      {targetCase && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 py-2 flex items-center justify-between text-xs text-amber-900 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded bg-amber-100 text-secondary">
+              <Briefcase className="w-3.5 h-3.5" />
+            </span>
+            <span>
+              <strong>توليد عقد لقضية:</strong> {targetCase.title} (رقم {targetCase.case_number}/{targetCase.case_year} - {targetCase.court_name}) • تم سحب بيانات الموكل والخصم والمحكمة تلقائياً
+            </span>
+          </div>
+          <Link
+            to={`/firm/cases/${targetCase.id}`}
+            className="text-xs font-bold text-secondary hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>العودة لملف القضية</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
       {/* Main View Area */}
       <div className="flex-1 overflow-hidden">
         {viewMode === 'generator' && (
           <ContractGenerator
-            key={selectedTemplate.id}
+            key={`${selectedTemplate.id}-${caseId || 'plain'}`}
             template={selectedTemplate}
+            initialValues={caseInitialValues}
+            caseId={targetCase?.id}
+            caseTitle={targetCase?.title}
+            clientId={targetCase?.client_id}
+            clientName={targetCase?.client_name}
             onSaveInstance={handleSaveInstance}
             onBack={() => setViewMode('templates_list')}
           />

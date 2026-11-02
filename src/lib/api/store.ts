@@ -13,6 +13,7 @@ import {
   SubscriptionPlan,
   PowerOfAttorney
 } from '../../types';
+import { ContractInstance } from '../../types/contract';
 
 const STORAGE_KEY = 'baseera_app_data_v1';
 
@@ -672,6 +673,7 @@ export interface AppData {
   policeReports: PoliceReport[];
   plans: SubscriptionPlan[];
   expenses: Array<{ id: string; title: string; amount: number; date: string; case_id?: string }>;
+  contracts: ContractInstance[];
 }
 
 class Store {
@@ -687,7 +689,14 @@ class Store {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('siyaq_app_data_v1');
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (!parsed.contracts) parsed.contracts = [];
+        if (!parsed.deadlines) parsed.deadlines = [];
+        if (!parsed.sessions) parsed.sessions = [];
+        if (!parsed.tasks) parsed.tasks = [];
+        if (!parsed.policeReports) parsed.policeReports = [];
+        if (!parsed.expenses) parsed.expenses = [];
+        return parsed;
       }
     } catch {
       // ignore
@@ -726,6 +735,47 @@ class Store {
         { id: 'exp-2', title: 'إعلانات محضري الأسرة', amount: 300, date: '2026-07-01', case_id: 'case-202' },
         { id: 'exp-3', title: 'أمانة خبير حسابي بالمحكمة الاقتصادية', amount: 2200, date: '2026-05-15', case_id: 'case-203' },
       ],
+      contracts: [
+        {
+          id: 'ci-101',
+          template_id: 'tmpl-retainer-lawyer',
+          template_name: 'عقد اتفاق وتحديد أتعاب محاماة واستشارات قانونية ووكالة قضائية',
+          case_id: 'case-201',
+          case_title: 'دعوى تعويض عن إصابة عمل وفصل تعسفي',
+          client_id: 'client-101',
+          client_name: 'أحمد محمود إسماعيل',
+          status: 'signed',
+          final_html: '<p>عقد أتعاب محاماة موثق وموقع بين مكتب المحاماة والموكل أحمد محمود إسماعيل في دعوى التعويض رقم 1842 لسنة 2026 عمال شمال القاهرة.</p>',
+          filled_data: {
+            second_party_name: 'أحمد محمود إسماعيل',
+            second_party_id: '28501011234567',
+            case_number: '1842 لسنة 2026 عمال شمال القاهرة',
+            contract_value: '15000',
+            down_payment: '5000',
+            lawyer_name: 'محمد السيد المحامي',
+          },
+          created_at: '2026-06-12T10:00:00Z',
+          updated_at: '2026-06-12T10:00:00Z',
+        },
+        {
+          id: 'ci-102',
+          template_id: 'tmpl-settlement-court',
+          template_name: 'إقرار تصالح وتنازل نهائي عن جنحة / دعوى قضائية',
+          case_id: '01a085f6-51f3-7bf7-bf6e-d58b1182af70',
+          case_title: 'دعوى فسخ عقد توريد ومطالبة بتعويض',
+          client_id: '01a085e6-e9ad-71b6-95f2-766fc4418bdf',
+          client_name: 'شركة عامر للتجارة الدولية',
+          status: 'under_review',
+          final_html: '<p>مشروع إقرار تصالح وتنازل نهائي عن الدعوى رقم 3542523 لسنة 2026 مدني بورسعيد بعد التراضي والوفاء بالالتزامات.</p>',
+          filled_data: {
+            first_party_name: 'شركة عامر للتجارة الدولية',
+            second_party_name: 'شركة الصفا للشحن والتفريغ',
+            case_number: '3542523 لسنة 2026 مدني بورسعيد',
+          },
+          created_at: '2026-09-10T14:00:00Z',
+          updated_at: '2026-09-10T14:00:00Z',
+        },
+      ],
     };
   }
 
@@ -751,7 +801,9 @@ class Store {
   }
 
   public setCases(cases: Case[]) {
-    this.data.cases = cases;
+    const incomingIds = new Set(cases.map((c) => c.id));
+    const localOnly = this.data.cases.filter((c) => !incomingIds.has(c.id));
+    this.data.cases = [...cases, ...localOnly];
     this.notify();
   }
 
@@ -863,7 +915,9 @@ class Store {
   }
 
   public setSessions(sessions: CourtSession[]) {
-    this.data.sessions = sessions;
+    const incomingIds = new Set(sessions.map((s) => s.id));
+    const localOnly = this.data.sessions.filter((s) => !incomingIds.has(s.id));
+    this.data.sessions = [...sessions, ...localOnly];
     this.notify();
   }
 
@@ -918,7 +972,9 @@ class Store {
   }
 
   public setDeadlines(deadlines: LegalDeadline[]) {
-    this.data.deadlines = deadlines;
+    const incomingIds = new Set(deadlines.map((d) => d.id));
+    const localOnly = this.data.deadlines.filter((d) => !incomingIds.has(d.id));
+    this.data.deadlines = [...deadlines, ...localOnly];
     this.notify();
   }
 
@@ -966,7 +1022,9 @@ class Store {
   }
 
   public setTasks(tasks: Task[]) {
-    this.data.tasks = tasks;
+    const incomingIds = new Set(tasks.map((t) => t.id));
+    const localOnly = this.data.tasks.filter((t) => !incomingIds.has(t.id));
+    this.data.tasks = [...tasks, ...localOnly];
     this.notify();
   }
 
@@ -1010,8 +1068,64 @@ class Store {
   }
 
   public setPoliceReports(reports: PoliceReport[]) {
-    this.data.policeReports = reports;
+    const incomingIds = new Set(reports.map((r) => r.id));
+    const localOnly = this.data.policeReports.filter((r) => !incomingIds.has(r.id));
+    this.data.policeReports = [...reports, ...localOnly];
     this.notify();
+  }
+
+  public getPoliceReportsByCase(caseId: string): PoliceReport[] {
+    return this.data.policeReports.filter((r) => r.linked_case_id === caseId);
+  }
+
+  // CONTRACTS
+  public getContracts(caseId?: string): ContractInstance[] {
+    if (!this.data.contracts) this.data.contracts = [];
+    if (caseId) {
+      return this.data.contracts.filter((c) => c.case_id === caseId);
+    }
+    return this.data.contracts;
+  }
+
+  public addContract(contract: Omit<ContractInstance, 'id' | 'created_at' | 'updated_at'> & { id?: string }): ContractInstance {
+    if (!this.data.contracts) this.data.contracts = [];
+    const id = contract.id || `ci-${Date.now()}`;
+    const created: ContractInstance = {
+      ...contract,
+      id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.data.contracts.unshift(created);
+    this.notify();
+    return created;
+  }
+
+  public deleteContract(id: string): boolean {
+    if (!this.data.contracts) return false;
+    const idx = this.data.contracts.findIndex((c) => c.id === id);
+    if (idx === -1) return false;
+    this.data.contracts.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
+  // EXPENSES
+  public getExpenses(caseId?: string) {
+    if (!this.data.expenses) this.data.expenses = [];
+    if (caseId) {
+      return this.data.expenses.filter((e) => e.case_id === caseId);
+    }
+    return this.data.expenses;
+  }
+
+  public addExpense(expense: { title: string; amount: number; date: string; case_id?: string }) {
+    if (!this.data.expenses) this.data.expenses = [];
+    const id = `exp-${Date.now()}`;
+    const created = { id, ...expense };
+    this.data.expenses.unshift(created);
+    this.notify();
+    return created;
   }
 
   public getPoliceReportById(id: string): PoliceReport | undefined {

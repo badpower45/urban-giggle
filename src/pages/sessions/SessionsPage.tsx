@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
 import { CourtSession, Case } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -61,6 +62,10 @@ export const SessionsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const unsubscribe = appStore.subscribe(() => {
+      loadData();
+    });
+    return () => unsubscribe();
   }, [filter]);
 
   const handleAddSession = async (e: React.FormEvent) => {
@@ -82,6 +87,19 @@ export const SessionsPage: React.FC = () => {
         next_session_date: nextDate || null,
         notes: notes || undefined,
       });
+
+      // If a next session was specified, schedule the upcoming session in the roll & agenda
+      if (nextDate) {
+        await apiClient.createSession({
+          case_id: selectedCaseId,
+          case_title: matchedCase?.title,
+          case_court: matchedCase?.court_name,
+          case_client: matchedCase?.client_name,
+          session_date: nextDate,
+          outcome_type: "adjourned",
+          adjournment_reason: `جلسة محددة بقرار الجلسة السابقة (${decisionReason || 'مرافعة'})`,
+        });
+      }
 
       setIsAddOpen(false);
       setSessionDate("");

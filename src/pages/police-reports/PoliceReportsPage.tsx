@@ -14,6 +14,7 @@ import {
   Edit2,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
 import { PoliceReport } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -42,6 +43,10 @@ export const PoliceReportsPage: React.FC = () => {
 
   useEffect(() => {
     loadReports();
+    const unsubscribe = appStore.subscribe(() => {
+      loadReports();
+    });
+    return () => unsubscribe();
   }, []);
 
   const filtered = reports.filter((r) => {
@@ -235,8 +240,19 @@ export const PoliceReportsPage: React.FC = () => {
                       {r.police_station}
                     </td>
 
-                    <td className="px-4 py-3 text-primary max-w-xs truncate">
-                      {r.subject}
+                    <td className="px-4 py-3 text-primary max-w-xs">
+                      <div className="truncate font-semibold">{r.subject}</div>
+                      {r.linked_case_id && (
+                        <div className="mt-0.5">
+                          <Link
+                            to={`/firm/cases/${r.linked_case_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[10px] text-secondary bg-secondary/10 hover:bg-secondary/20 px-1.5 py-0.5 rounded font-mono font-bold"
+                          >
+                            <span>مرتبط بقضية</span>
+                          </Link>
+                        </div>
+                      )}
                     </td>
 
                     <td className="px-4 py-3 text-tertiary hidden sm:table-cell">

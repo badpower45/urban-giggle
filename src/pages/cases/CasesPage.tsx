@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
 import { Case, CaseStatus } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -51,6 +52,10 @@ export const CasesPage: React.FC = () => {
 
   useEffect(() => {
     loadCases();
+    const unsubscribe = appStore.subscribe(() => {
+      loadCases();
+    });
+    return () => unsubscribe();
   }, [statusFilter, courtFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

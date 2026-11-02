@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ShieldAlert, ArrowRight, Save, User, Building } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ShieldAlert, ArrowRight, Save, User, Building, Briefcase } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { ClientPicker } from "../../components/common/ClientPicker";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { EGYPT_GOVERNORATES } from "../../lib/utils";
-import { PoliceReportType } from "../../types";
+import { PoliceReportType, Case } from "../../types";
 
 export const PoliceReportFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
+  const queryCaseId = searchParams.get("caseId") || "";
+
   const [loading, setLoading] = useState(isEdit);
+  const [cases, setCases] = useState<Case[]>([]);
+  const [linkedCaseId, setLinkedCaseId] = useState(queryCaseId);
   const [clientId, setClientId] = useState("");
   const [clientName, setClientName] = useState("");
   const [reportNumber, setReportNumber] = useState("");
@@ -31,10 +36,31 @@ export const PoliceReportFormPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isEdit && id) {
-      loadReport(id);
-    }
+    loadInitialData();
   }, [id, isEdit]);
+
+  const loadInitialData = async () => {
+    try {
+      const allCases = await apiClient.getCases();
+      setCases(allCases);
+
+      if (queryCaseId) {
+        const foundCase = allCases.find((c) => c.id === queryCaseId);
+        if (foundCase) {
+          setLinkedCaseId(foundCase.id);
+          setClientId(foundCase.client_id);
+          setClientName(foundCase.client_name);
+          setSubject(`محضر متعلق بـ: ${foundCase.title}`);
+        }
+      }
+
+      if (isEdit && id) {
+        await loadReport(id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const loadReport = async (reportId: string) => {
     try {
@@ -43,6 +69,7 @@ export const PoliceReportFormPage: React.FC = () => {
       if (r) {
         setClientId(r.client_id);
         setClientName(r.client_name || "");
+        setLinkedCaseId(r.linked_case_id || "");
         setReportNumber(r.report_number);
         setReportYear(r.report_year);
         setReportType(r.report_type);
@@ -75,6 +102,7 @@ export const PoliceReportFormPage: React.FC = () => {
         await apiClient.updatePoliceReport(id, {
           client_id: clientId,
           client_name: clientName,
+          linked_case_id: linkedCaseId || null,
           report_number: reportNumber.trim(),
           report_year: reportYear,
           report_type: reportType,
@@ -87,11 +115,16 @@ export const PoliceReportFormPage: React.FC = () => {
           dispatch_number: dispatchNumber.trim() || undefined,
           total_fees: fees,
         });
-        navigate(`/firm/police-reports/${id}`);
+        if (linkedCaseId) {
+          navigate(`/firm/cases/${linkedCaseId}`);
+        } else {
+          navigate(`/firm/police-reports/${id}`);
+        }
       } else {
         await apiClient.createPoliceReport({
           client_id: clientId,
           client_name: clientName,
+          linked_case_id: linkedCaseId || null,
           report_number: reportNumber.trim(),
           report_year: reportYear,
           report_type: reportType,
@@ -105,9 +138,12 @@ export const PoliceReportFormPage: React.FC = () => {
           dispatch_number: dispatchNumber.trim() || undefined,
           total_fees: fees,
           total_expenses: 0,
-          linked_case_id: null,
         });
-        navigate("/firm/police-reports");
+        if (linkedCaseId) {
+          navigate(`/firm/cases/${linkedCaseId}`);
+        } else {
+          navigate("/firm/police-reports");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -152,6 +188,53 @@ export const PoliceReportFormPage: React.FC = () => {
                 setClientName(cName);
               }}
             />
+          </CardContent>
+        </Card>
+
+        {/* Linked Case Picker */}
+        <Card>
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-secondary" />
+              القضية المرتبطة بالمحضر (اختياري)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                اختر القضية القضائية إن كان المحضر تمهيداً لها أو متفرعاً منها
+              </label>
+              <select
+                value={linkedCaseId}
+                onChange={(e) => {
+                  const cId = e.target.value;
+                  setLinkedCaseId(cId);
+                  const found = cases.find((c) => c.id === cId);
+                  if (found) {
+                    if (!clientId) {
+                      setClientId(found.client_id);
+                      setClientName(found.client_name);
+                    }
+                    if (!subject) {
+                      setSubject(`محضر متعلق بـ: ${found.title}`);
+                    }
+                  }
+                }}
+                className="w-full h-10 px-3 rounded-lg border border-input bg-white text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">-- بدون ربط بقضية حالية (محضر مستقل) --</option>
+                {cases.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title} (رقم {c.case_number}/{c.case_year} - {c.court_name})
+                  </option>
+                ))}
+              </select>
+              {linkedCaseId && (
+                <p className="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded mt-2 border border-emerald-200">
+                  ✓ سيتم ربط هذا المحضر تلقائياً بالقضية وعرضه في تبويب (محاضر الشرطة والنيابة) داخل ملف القضية.
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
