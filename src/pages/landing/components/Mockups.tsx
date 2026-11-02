@@ -21,8 +21,8 @@ export const DashboardMockup: React.FC = () => {
       {/* Mini App Header */}
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-white text-[10px] font-bold">
-            س
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-slate-900 flex items-center justify-center text-white text-[10px] font-bold">
+            ب
           </div>
           <span className="text-xs font-bold text-primary">مكتب الشربيني للمحاماة والاستشارات</span>
         </div>
@@ -63,13 +63,13 @@ export const DashboardMockup: React.FC = () => {
       </div>
 
       {/* Upcoming Court Session Card */}
-      <div className="p-2.5 rounded-lg border border-amber-200 bg-amber-50/40 mb-3">
+      <div className="p-2.5 rounded-lg border border-blue-200 bg-blue-50/50 mb-3">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
+          <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
             الجلسة القادمة: غداً 09:00 ص
           </span>
-          <span className="text-[10px] font-mono bg-amber-200/70 text-amber-900 px-1.5 py-0.5 rounded font-bold">
+          <span className="text-[10px] font-mono bg-blue-200/80 text-blue-900 px-1.5 py-0.5 rounded font-bold">
             رول 14
           </span>
         </div>
@@ -95,7 +95,7 @@ export const DashboardMockup: React.FC = () => {
           <span className="font-semibold text-primary truncate max-w-[180px]">
             طعن بالنقض جنائي — جنح مستأنف
           </span>
-          <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+          <span className="text-[10px] bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold">
             حجز للحكم
           </span>
         </div>
@@ -164,7 +164,7 @@ export const CaseManagementMockup: React.FC = () => {
           </div>
           <div className="text-[11px] text-slate-600 mt-1 flex items-center justify-between">
             <span>الموكل: طارق محمود السيد</span>
-            <span className="text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded text-[10px]">
+            <span className="text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded text-[10px]">
               متبقي 5,000 ج.م
             </span>
           </div>
@@ -272,7 +272,7 @@ export const SessionsMockup: React.FC = () => {
         <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded bg-secondary text-primary text-[10px] font-bold font-mono flex items-center justify-center">
+              <span className="w-6 h-6 rounded bg-secondary text-white text-[10px] font-bold font-mono flex items-center justify-center">
                 2
               </span>
               <div>
@@ -284,7 +284,7 @@ export const SessionsMockup: React.FC = () => {
                 </span>
               </div>
             </div>
-            <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded">
               قيد المرافعة
             </span>
           </div>
@@ -307,9 +307,9 @@ export const PhoneMockup: React.FC = () => {
           {/* Top Bar */}
           <div>
             <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-[10px] text-slate-400">
-              <span className="font-bold text-secondary">سِـيَـاق Mobile</span>
+              <span className="font-bold text-secondary">بَـصِـيـرَة Mobile</span>
               <span className="flex items-center gap-1 text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">
-                <WifiOff className="w-2.5 h-2.5 text-amber-400" />
+                <WifiOff className="w-2.5 h-2.5 text-blue-400" />
                 أوفلاين
               </span>
             </div>
@@ -349,8 +349,8 @@ export const PhoneMockup: React.FC = () => {
             </div>
 
             {/* Recent Notification */}
-            <div className="mt-3 p-2 rounded-lg bg-amber-950/30 border border-amber-800/40 text-[9px] text-amber-200 flex items-center gap-1.5">
-              <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+            <div className="mt-3 p-2 rounded-lg bg-blue-950/40 border border-blue-800/40 text-[9px] text-blue-200 flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3 text-blue-400 shrink-0" />
               <span>ميعاد استئناف وشيك: متبقي يومان</span>
             </div>
           </div>

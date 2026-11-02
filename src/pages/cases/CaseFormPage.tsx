@@ -150,7 +150,7 @@ export const CaseFormPage: React.FC = () => {
           court_id: formData.court_id || "c1",
           case_type_id: formData.case_type_id || "ct1",
           firm_id: "01a08460-df3a-70c0-9a46-f3497eced7c7",
-          filing_date: new Date().toISOString(),
+          filing_date: new Date().toISOString().split("T")[0],
           created_by: "01a08460-b523-7667-b6cd-7863e99c38c7",
         });
 

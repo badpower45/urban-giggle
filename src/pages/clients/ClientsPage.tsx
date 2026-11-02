@@ -132,14 +132,23 @@ export const ClientsPage: React.FC = () => {
           <CountBadge count={clients.length} isLoading={loading} />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsCreateOpen(true)}
-          className="h-9 shrink-0 flex items-center gap-1.5 bg-primary px-3.5 text-sm font-semibold text-white rounded-lg hover:bg-primary/90 transition-colors shadow-2xs"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>موكل جديد</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsCreateOpen(true)}
+            className="h-9 shrink-0 hidden sm:flex items-center gap-1.5 border border-border bg-white px-3 text-xs font-semibold text-primary rounded-lg hover:bg-neutral transition-colors shadow-2xs"
+          >
+            <span>تسجيل سريع</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/firm/clients/new")}
+            className="h-9 shrink-0 flex items-center gap-1.5 bg-primary px-3.5 text-xs font-semibold text-white rounded-lg hover:bg-primary/90 transition-colors shadow-2xs"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>موكل جديد</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Row: Search + Sort Dropdown + View Mode Toggle */}

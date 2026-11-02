@@ -218,7 +218,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           <DropdownMenuTrigger asChild>
             <Button
               type="button"
-              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm h-10 px-4 gap-2 shadow-sm rounded-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm h-10 px-4 gap-2 shadow-sm shadow-blue-500/20 rounded-lg"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ إضافة خانة تملأ لاحقاً</span>
@@ -241,10 +241,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                       label: item.label,
                     })
                   }
-                  className="text-xs py-2.5 px-3 cursor-pointer rounded-md hover:bg-amber-50 hover:text-amber-900 font-semibold flex items-center justify-between"
+                  className="text-xs py-2.5 px-3 cursor-pointer rounded-md hover:bg-blue-50 hover:text-blue-900 font-semibold flex items-center justify-between"
                 >
                   <span>{item.label}</span>
-                  <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">
                     إدراج +
                   </span>
                 </DropdownMenuItem>

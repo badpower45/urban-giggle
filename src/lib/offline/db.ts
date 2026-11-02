@@ -15,7 +15,7 @@ import {
 } from '@capacitor-community/sqlite';
 import { LocalCase, LocalClient, SyncQueueItem } from './types';
 
-const DB_NAME = 'siyaq_offline_db';
+const DB_NAME = 'baseera_offline_db';
 const DB_VERSION = 1;
 
 // Schema DDL Statements
@@ -147,17 +147,17 @@ class DatabaseService {
 
   private initWebStorage() {
     try {
-      const storedCases = localStorage.getItem('siyaq_sqlite_cases');
+      const storedCases = localStorage.getItem('baseera_sqlite_cases') || localStorage.getItem('siyaq_sqlite_cases');
       if (storedCases) {
         const parsed: LocalCase[] = JSON.parse(storedCases);
         parsed.forEach((c) => this.webStorage.cases.set(c.id, c));
       }
-      const storedClients = localStorage.getItem('siyaq_sqlite_clients');
+      const storedClients = localStorage.getItem('baseera_sqlite_clients') || localStorage.getItem('siyaq_sqlite_clients');
       if (storedClients) {
         const parsed: LocalClient[] = JSON.parse(storedClients);
         parsed.forEach((cl) => this.webStorage.clients.set(cl.id, cl));
       }
-      const storedQueue = localStorage.getItem('siyaq_sqlite_queue');
+      const storedQueue = localStorage.getItem('baseera_sqlite_queue') || localStorage.getItem('siyaq_sqlite_queue');
       if (storedQueue) {
         const parsed: SyncQueueItem[] = JSON.parse(storedQueue);
         parsed.forEach((q) => this.webStorage.sync_queue.set(q.id, q));
@@ -174,13 +174,13 @@ class DatabaseService {
     try {
       if (store === 'cases') {
         const list = Array.from(this.webStorage.cases.values());
-        localStorage.setItem('siyaq_sqlite_cases', JSON.stringify(list));
+        localStorage.setItem('baseera_sqlite_cases', JSON.stringify(list));
       } else if (store === 'clients') {
         const list = Array.from(this.webStorage.clients.values());
-        localStorage.setItem('siyaq_sqlite_clients', JSON.stringify(list));
+        localStorage.setItem('baseera_sqlite_clients', JSON.stringify(list));
       } else if (store === 'sync_queue') {
         const list = Array.from(this.webStorage.sync_queue.values());
-        localStorage.setItem('siyaq_sqlite_queue', JSON.stringify(list));
+        localStorage.setItem('baseera_sqlite_queue', JSON.stringify(list));
       }
     } catch (e) {
       console.error('[SQLite] Error persisting web storage:', e);

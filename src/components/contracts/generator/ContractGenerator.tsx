@@ -73,7 +73,7 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
   const [designModalOpen, setDesignModalOpen] = useState(false);
   const [designSettings, setDesignSettings] = useState<ContractDesignSettings>(() => {
     try {
-      const saved = localStorage.getItem('siyaq_contract_design_settings');
+      const saved = localStorage.getItem('baseera_contract_design_settings') || localStorage.getItem('siyaq_contract_design_settings');
       if (saved) return JSON.parse(saved);
     } catch {
       // Fallback to default
@@ -85,7 +85,7 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
   const handleSaveDesignSettings = (updated: ContractDesignSettings) => {
     setDesignSettings(updated);
     try {
-      localStorage.setItem('siyaq_contract_design_settings', JSON.stringify(updated));
+      localStorage.setItem('baseera_contract_design_settings', JSON.stringify(updated));
     } catch {
       // Ignore
     }
@@ -258,10 +258,10 @@ export const ContractGenerator: React.FC<ContractGeneratorProps> = ({
               <button
                 type="button"
                 onClick={handleFillDemoData}
-                className="text-amber-700 hover:text-amber-800 text-[11px] font-semibold flex items-center gap-1 px-2 py-1 rounded hover:bg-amber-50 transition-colors"
+                className="text-blue-700 hover:text-blue-800 text-[11px] font-semibold flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
                 title="تعبئة بيانات تجريبية سريعة"
               >
-                <Sparkles className="w-3 h-3 text-amber-600" />
+                <Sparkles className="w-3 h-3 text-blue-600" />
                 <span>تعبئة تجريبية</span>
               </button>
 

@@ -95,7 +95,7 @@ export const OfflineBanner: React.FC = () => {
             <button
               type="button"
               onClick={() => syncNow()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-secondary text-primary font-bold text-[11px] hover:bg-amber-400 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-secondary text-white font-bold text-[11px] hover:bg-secondary-hover transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               <span>مزامنة فورية الآن</span>

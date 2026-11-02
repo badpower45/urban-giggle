@@ -59,7 +59,7 @@ export const VariableSidebar: React.FC<VariableSidebarProps> = ({
       case 'financial':
         return <CircleDollarSign className="w-4 h-4 text-emerald-600" />;
       case 'dates':
-        return <Calendar className="w-4 h-4 text-amber-600" />;
+        return <Calendar className="w-4 h-4 text-sky-600" />;
       case 'property':
         return <Home className="w-4 h-4 text-purple-600" />;
       case 'litigation':
@@ -154,10 +154,10 @@ export const VariableSidebar: React.FC<VariableSidebarProps> = ({
                     key={v.key}
                     type="button"
                     onClick={() => onInsertVariable(v)}
-                    className="w-full text-right flex items-center justify-between p-2 rounded-md border border-border/80 hover:border-amber-400 hover:bg-amber-50/60 text-xs transition-colors"
+                    className="w-full text-right flex items-center justify-between p-2 rounded-md border border-border/80 hover:border-blue-400 hover:bg-blue-50/60 text-xs transition-colors"
                   >
                     <span className="font-semibold text-primary">{v.label}</span>
-                    <span className="text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-blue-800 bg-blue-100 px-1.5 py-0.5 rounded font-semibold">
                       إدراج +
                     </span>
                   </button>
@@ -204,7 +204,7 @@ export const VariableSidebar: React.FC<VariableSidebarProps> = ({
                         className={`w-full text-right flex items-center justify-between p-2 rounded-md border text-xs transition-all ${
                           used
                             ? 'border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50'
-                            : 'border-border/70 hover:border-amber-400 hover:bg-amber-50/50'
+                            : 'border-border/70 hover:border-blue-400 hover:bg-blue-50/50'
                         }`}
                       >
                         <div className="flex flex-col text-right">
@@ -224,7 +224,7 @@ export const VariableSidebar: React.FC<VariableSidebarProps> = ({
                             مدرجة
                           </span>
                         ) : (
-                          <span className="text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded font-bold">
+                          <span className="text-[10px] text-blue-800 bg-blue-100 px-1.5 py-0.5 rounded font-bold">
                             إضافة +
                           </span>
                         )}

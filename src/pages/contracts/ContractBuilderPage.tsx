@@ -397,7 +397,7 @@ export const ContractBuilderPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <h3 className="font-bold text-sm text-primary leading-snug group-hover:text-amber-800 transition-colors">
+                      <h3 className="font-bold text-sm text-primary leading-snug group-hover:text-blue-600 transition-colors">
                         {tmpl.name}
                       </h3>
 

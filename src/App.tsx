@@ -10,6 +10,7 @@ import { CaseFormPage } from "./pages/cases/CaseFormPage";
 import { CaseDetailPage } from "./pages/cases/CaseDetailPage";
 import { ClientsPage } from "./pages/clients/ClientsPage";
 import { ClientDetailPage } from "./pages/clients/ClientDetailPage";
+import { ClientFormPage } from "./pages/clients/ClientFormPage";
 import { SessionsPage } from "./pages/sessions/SessionsPage";
 import { CalendarPage } from "./pages/calendar/CalendarPage";
 import { DeadlinesPage } from "./pages/deadlines/DeadlinesPage";
@@ -27,6 +28,8 @@ import { ContractBuilderPage } from "./pages/contracts/ContractBuilderPage";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { LandingPage } from "./pages/landing/LandingPage";
 import { SuperAdminDashboardPage } from "./pages/admin/SuperAdminDashboardPage";
+import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
+import { SuperAdminRoute } from "./components/admin/SuperAdminRoute";
 import { ToastProvider } from "./components/common/Toast";
 import { OfflineProvider } from "./lib/offline";
 
@@ -53,11 +56,27 @@ export const App: React.FC = () => {
 
             {/* Public Auth */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<Navigate to="/firm/dashboard" replace />} />
+            <Route path="/register" element={<LoginPage />} />
 
-            {/* Super Admin & Platform Control */}
-            <Route path="/super-admin" element={<SuperAdminDashboardPage />} />
-            <Route path="/admin" element={<SuperAdminDashboardPage />} />
+            {/* Super Admin Auth & Platform Control */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/super-admin/login" element={<AdminLoginPage />} />
+            <Route
+              path="/super-admin"
+              element={
+                <SuperAdminRoute>
+                  <SuperAdminDashboardPage />
+                </SuperAdminRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <SuperAdminRoute>
+                  <SuperAdminDashboardPage />
+                </SuperAdminRoute>
+              }
+            />
 
             {/* Protected Firm SaaS Application */}
             <Route path="/firm" element={<AppLayout />}>
@@ -68,7 +87,9 @@ export const App: React.FC = () => {
             <Route path="cases/:id" element={<CaseDetailPage />} />
             <Route path="cases/:id/edit" element={<CaseFormPage />} />
             <Route path="clients" element={<ClientsPage />} />
+            <Route path="clients/new" element={<ClientFormPage />} />
             <Route path="clients/:id" element={<ClientDetailPage />} />
+            <Route path="clients/:id/edit" element={<ClientFormPage />} />
             <Route path="sessions" element={<SessionsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="deadlines" element={<DeadlinesPage />} />
@@ -76,6 +97,7 @@ export const App: React.FC = () => {
             <Route path="police-reports" element={<PoliceReportsPage />} />
             <Route path="police-reports/new" element={<PoliceReportFormPage />} />
             <Route path="police-reports/:id" element={<PoliceReportDetailPage />} />
+            <Route path="police-reports/:id/edit" element={<PoliceReportFormPage />} />
             <Route path="billing" element={<BillingReportPage />} />
             <Route path="scanner" element={<DocumentScannerPage />} />
             <Route path="contracts" element={<ContractBuilderPage />} />

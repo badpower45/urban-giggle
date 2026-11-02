@@ -11,6 +11,7 @@ import {
   ArrowRight,
   X,
   Sparkles,
+  Edit2,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { PoliceReport } from "../../types";
@@ -263,6 +264,13 @@ export const PoliceReportsPage: React.FC = () => {
                           className="p-1 rounded-md text-tertiary hover:text-primary hover:bg-neutral transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          to={`/firm/police-reports/${r.id}/edit`}
+                          title="تعديل المحضر"
+                          className="p-1 rounded-md text-tertiary hover:text-primary hover:bg-neutral transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
                         </Link>
                       </div>
                     </td>

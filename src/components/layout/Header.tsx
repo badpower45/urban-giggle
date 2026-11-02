@@ -14,8 +14,13 @@ import {
   AlertTriangle,
   LifeBuoy,
   ShieldCheck,
+  CheckSquare,
+  Clock,
+  CheckCircle2,
+  Calendar,
 } from "lucide-react";
 import { appStore } from "../../lib/api/store";
+import { supabaseService } from "../../lib/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -39,6 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const [storeState, setStoreState] = useState(appStore.getState());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState<"all" | "tasks" | "deadlines" | "sessions">("all");
 
   useEffect(() => {
     return appStore.subscribe(() => {
@@ -46,33 +52,70 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
     });
   }, []);
 
-  const { user, firm, deadlines, sessions } = storeState;
+  const { user, firm, deadlines = [], sessions = [], tasks = [] } = storeState;
 
-  const urgentCount = deadlines.filter((d) => d.urgency === "critical" || d.urgency === "high").length;
+  // Tasks assigned to current user
+  const myAssignedTasks = (tasks || []).filter(
+    (t) =>
+      (t.assigned_to === user.id ||
+        t.assigned_to_name === user.full_name ||
+        t.assigned_to_name?.includes(user.full_name?.split(" ")[0] || "")) &&
+      t.status !== "completed"
+  );
+
+  // Critical deadlines
+  const urgentDeadlines = (deadlines || []).filter(
+    (d) => d.urgency === "critical" || d.urgency === "high"
+  );
+
+  // Today / upcoming sessions
+  const upcomingSessions = (sessions || []).slice(0, 4);
+
+  // Total notification count
+  const urgentCount = urgentDeadlines.length + myAssignedTasks.length;
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-white/95 px-4 backdrop-blur sm:px-6">
-        {/* Right Side: Mobile Menu & Firm Badge */}
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-white/95 px-3 sm:px-6 backdrop-blur-md shadow-2xs">
+        {/* Right Side: Mobile Menu, Firm Badge & Cloud Status */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onOpenMobileMenu}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-slate-600 hover:bg-slate-100 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-slate-600 hover:bg-slate-100 md:hidden"
             aria-label="القائمة"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-border">
-            <Building2 className="w-4 h-4 text-secondary" />
-            <span className="text-xs font-semibold text-primary truncate max-w-[200px] lg:max-w-[320px]">
+            <Building2 className="w-4 h-4 text-secondary shrink-0" />
+            <span className="text-xs font-semibold text-primary truncate max-w-[180px] lg:max-w-[280px]">
               {firm.name}
             </span>
           </div>
 
+          {/* Cloud Database Live Badge */}
+          <Link
+            to="/firm/settings"
+            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all hover:opacity-90"
+            title="حالة الاتصال بقاعدة البيانات"
+          >
+            {supabaseService.isConfigured() ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>سحابة متصلة</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-amber-800 bg-amber-50 border-amber-200">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>وضع محلي</span>
+              </span>
+            )}
+          </Link>
+
           <Link
             to="/"
-            className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-primary px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+            className="hidden xl:flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-primary px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
             title="الانتقال إلى الموقع التعريفي"
           >
             <Globe className="w-3.5 h-3.5 text-secondary" />
@@ -98,84 +141,224 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </div>
 
         {/* Left Side: Actions, Notifications, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <Button
             size="sm"
             variant="outline"
             onClick={() => setIsSearchOpen(true)}
-            className="md:hidden p-2 h-9 w-9"
+            className="md:hidden p-2 h-9 w-9 rounded-lg"
             aria-label="بحث"
           >
             <Search className="w-4 h-4" />
           </Button>
 
           {/* Quick Add Button */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" className="gap-1.5 text-xs font-medium">
-              <PlusCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">إضافة جديدة</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>إجراءات سريعة</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/firm/cases/new")}>
-              <Briefcase className="w-4 h-4 ml-2 text-primary" />
-              إضافة قضية جديدة
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/firm/clients/new")}>
-              <UserPlus className="w-4 h-4 ml-2 text-primary" />
-              إضافة موكل جديد
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="gap-1.5 text-xs font-medium rounded-lg h-9">
+                <PlusCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">إضافة جديدة</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel>إجراءات سريعة</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/firm/cases/new")}>
+                <Briefcase className="w-4 h-4 ml-2 text-primary" />
+                قضية جديدة
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/firm/clients/new")}>
+                <UserPlus className="w-4 h-4 ml-2 text-primary" />
+                موكل جديد
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/firm/police-reports/new")}>
+                <ShieldCheck className="w-4 h-4 ml-2 text-rose-600" />
+                محضر شرطة جديد
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/firm/sessions")}>
+                <Building2 className="w-4 h-4 ml-2 text-amber-600" />
+                تسجيل جلسة محكمة
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/firm/deadlines")}>
+                <AlertTriangle className="w-4 h-4 ml-2 text-indigo-600" />
+                حساب ميعاد قانوني
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/firm/scanner")}>
+                <Search className="w-4 h-4 ml-2 text-secondary" />
+                مسح مستند ضوئي ذكي
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
         {/* Notifications Popover */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border text-slate-600 hover:bg-slate-100 hover:text-foreground transition-colors"
-              title="التنبيهات"
+              title="مركز الإشعارات والتنبيهات"
             >
               <Bell className="h-4 w-4" />
               {urgentCount > 0 && (
-                <span className="absolute -top-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow">
+                <span className="absolute -top-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow animate-pulse">
                   {urgentCount}
                 </span>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 p-2">
+          <DropdownMenuContent align="end" className="w-84 sm:w-96 p-2 shadow-xl border-border">
             <div className="flex items-center justify-between pb-2 border-b border-border px-2">
-              <span className="font-bold text-xs text-primary">التنبيهات والمواعيد الحرجة</span>
-              <span className="text-[10px] text-muted-foreground">{urgentCount} ميعاد وشيك</span>
+              <div className="flex items-center gap-1.5">
+                <Bell className="w-3.5 h-3.5 text-secondary" />
+                <span className="font-bold text-xs text-primary">مركز التنبيهات والإشعارات</span>
+              </div>
+              <span className="text-[10px] bg-red-50 text-red-700 font-bold px-2 py-0.5 rounded-full border border-red-200">
+                {urgentCount} إشعار يتطلب المتابعة
+              </span>
             </div>
-            <div className="py-2 divide-y divide-slate-100 max-h-64 overflow-y-auto">
-              {deadlines.slice(0, 3).map((dl) => (
-                <div key={dl.id} className="py-2 px-1 hover:bg-slate-50 rounded-lg text-xs">
-                  <div className="flex items-center gap-1.5 text-amber-800 font-semibold mb-0.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                    <span>{dl.type}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 truncate">{dl.case_title}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">تاريخ الاستحقاق: {dl.deadline_date}</p>
-                </div>
-              ))}
-              {sessions.slice(0, 2).map((s) => (
-                <div key={s.id} className="py-2 px-1 hover:bg-slate-50 rounded-lg text-xs">
-                  <span className="font-semibold text-primary block">جلسة محكمة قادمة</span>
-                  <p className="text-[11px] text-slate-600 truncate">{s.case_title}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{s.case_court} — {s.session_date}</p>
-                </div>
-              ))}
-            </div>
-            <div className="pt-2 border-t border-border text-center">
-              <Link
-                to="/firm/deadlines"
-                className="text-[11px] text-secondary font-bold hover:underline"
+
+            {/* Notification Filter Chips */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg my-1.5 text-[10px] font-bold">
+              <button
+                type="button"
+                onClick={() => setNotifTab("all")}
+                className={`flex-1 py-1 rounded transition-all text-center ${
+                  notifTab === "all" ? "bg-white text-primary shadow-xs" : "text-slate-600 hover:text-primary"
+                }`}
               >
-                عرض كل المواعيد والمدد القانونية &larr;
+                الكل ({myAssignedTasks.length + urgentDeadlines.length + upcomingSessions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setNotifTab("tasks")}
+                className={`flex-1 py-1 rounded transition-all text-center flex items-center justify-center gap-1 ${
+                  notifTab === "tasks" ? "bg-white text-primary shadow-xs" : "text-slate-600 hover:text-primary"
+                }`}
+              >
+                <span>تكليفاتي</span>
+                {myAssignedTasks.length > 0 && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setNotifTab("deadlines")}
+                className={`flex-1 py-1 rounded transition-all text-center ${
+                  notifTab === "deadlines" ? "bg-white text-primary shadow-xs" : "text-slate-600 hover:text-primary"
+                }`}
+              >
+                الطعون ({urgentDeadlines.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setNotifTab("sessions")}
+                className={`flex-1 py-1 rounded transition-all text-center ${
+                  notifTab === "sessions" ? "bg-white text-primary shadow-xs" : "text-slate-600 hover:text-primary"
+                }`}
+              >
+                الجلسات ({upcomingSessions.length})
+              </button>
+            </div>
+
+            {/* Notification Items List */}
+            <div className="py-1 divide-y divide-slate-100 max-h-72 overflow-y-auto">
+              {/* Tasks Notifications */}
+              {(notifTab === "all" || notifTab === "tasks") && myAssignedTasks.length > 0 && (
+                <div className="space-y-1 py-1">
+                  {myAssignedTasks.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => navigate("/firm/tasks")}
+                      className="p-2 hover:bg-blue-50/70 rounded-lg text-xs cursor-pointer transition-colors border border-transparent hover:border-blue-200"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="inline-flex items-center gap-1 font-bold text-blue-900 text-[11px]">
+                          <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                          <span>مهمة موجهة لك</span>
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                          {t.priority === "urgent" ? "عاجلة ⚡" : t.priority === "high" ? "عالية" : "مطلوبة"}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-800 leading-snug">{t.title}</p>
+                      {t.case_title && (
+                        <p className="text-[10px] text-slate-500 truncate mt-0.5">القضية: {t.case_title}</p>
+                      )}
+                      <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>المكلف: {t.assigned_to_name}</span>
+                        <span className="font-mono text-slate-600 font-semibold">استحقاق: {t.due_date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Deadlines Notifications */}
+              {(notifTab === "all" || notifTab === "deadlines") &&
+                deadlines.slice(0, 3).map((dl) => (
+                  <div
+                    key={dl.id}
+                    onClick={() => navigate("/firm/deadlines")}
+                    className="p-2 hover:bg-amber-50/70 rounded-lg text-xs cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{dl.type}</span>
+                      </div>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                        ميعاد حتمي
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-700 truncate">{dl.case_title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      آخر ميعاد للإيداع: {dl.deadline_date}
+                    </p>
+                  </div>
+                ))}
+
+              {/* Court Sessions Notifications */}
+              {(notifTab === "all" || notifTab === "sessions") &&
+                sessions.slice(0, 3).map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => navigate("/firm/sessions")}
+                    className="p-2 hover:bg-slate-50 rounded-lg text-xs cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="font-bold text-primary text-[11px] flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-secondary" />
+                        <span>جلسة محكمة</span>
+                      </span>
+                      {s.roll_number && (
+                        <span className="text-[9px] font-mono font-bold bg-slate-200 px-1 rounded">
+                          رول {s.roll_number}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-700 truncate">{s.case_title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {s.case_court} — {s.session_date}
+                    </p>
+                  </div>
+                ))}
+
+              {/* Empty state when tab has 0 notifications */}
+              {((notifTab === "tasks" && myAssignedTasks.length === 0) ||
+                (notifTab === "deadlines" && urgentDeadlines.length === 0)) && (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1.5" />
+                  <p>لا توجد تنبيهات معلقة في هذا القسم</p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Direct Links */}
+            <div className="pt-2 border-t border-border flex items-center justify-between px-2 text-[11px]">
+              <Link to="/firm/tasks" className="text-secondary font-bold hover:underline">
+                لوحة المهام &larr;
+              </Link>
+              <Link to="/firm/deadlines" className="text-secondary font-bold hover:underline">
+                أجندة المواعيد &larr;
               </Link>
             </div>
           </DropdownMenuContent>
@@ -185,10 +368,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         <button
           type="button"
           onClick={() => setIsComplaintModalOpen(true)}
-          className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-amber-900 hover:bg-amber-100 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-blue-200 bg-blue-50/70 text-blue-900 hover:bg-blue-100 text-xs font-semibold transition-colors"
           title="تقديم شكوى أو استفسار للإدارة العليا"
         >
-          <LifeBuoy className="w-3.5 h-3.5 text-amber-700" />
+          <LifeBuoy className="w-3.5 h-3.5 text-blue-700" />
           <span className="hidden xl:inline">الدعم والشكاوى</span>
         </button>
 

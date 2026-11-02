@@ -19,7 +19,7 @@ export const CountBadge: React.FC<CountBadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center bg-[#C5A059]/10 text-[#9E7B35] border border-[#C5A059]/30 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold shrink-0 select-none",
+        "inline-flex items-center justify-center bg-blue-500/10 text-blue-600 border border-blue-500/25 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold shrink-0 select-none",
         className
       )}
     >

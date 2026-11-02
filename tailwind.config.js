@@ -14,8 +14,8 @@ export default {
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#c5a059",
-          hover: "#b18d4b",
+          DEFAULT: "#2563eb",
+          hover: "#1d4ed8",
           foreground: "#ffffff",
         },
         tertiary: "#707781",

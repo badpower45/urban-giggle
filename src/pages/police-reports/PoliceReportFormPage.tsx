@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ShieldAlert, ArrowRight, Save, User, Building } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { ClientPicker } from "../../components/common/ClientPicker";
@@ -10,8 +10,11 @@ import { EGYPT_GOVERNORATES } from "../../lib/utils";
 import { PoliceReportType } from "../../types";
 
 export const PoliceReportFormPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isEdit = Boolean(id);
 
+  const [loading, setLoading] = useState(isEdit);
   const [clientId, setClientId] = useState("");
   const [clientName, setClientName] = useState("");
   const [reportNumber, setReportNumber] = useState("");
@@ -27,6 +30,38 @@ export const PoliceReportFormPage: React.FC = () => {
   const [fees, setFees] = useState(3000);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (isEdit && id) {
+      loadReport(id);
+    }
+  }, [id, isEdit]);
+
+  const loadReport = async (reportId: string) => {
+    try {
+      setLoading(true);
+      const r = await apiClient.getPoliceReportById(reportId);
+      if (r) {
+        setClientId(r.client_id);
+        setClientName(r.client_name || "");
+        setReportNumber(r.report_number);
+        setReportYear(r.report_year);
+        setReportType(r.report_type);
+        setPoliceStation(r.police_station);
+        setDistrictProsecution(r.district_prosecution);
+        setGeneralProsecution(r.general_prosecution);
+        setSubject(r.subject);
+        setIncidentSummary(r.incident_summary || "");
+        setDispatchNumber(r.dispatch_number || "");
+        setFees(r.total_fees || 0);
+      }
+    } catch (err) {
+      console.error(err);
+      navigate("/firm/police-reports");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientId || !reportNumber.trim() || !subject.trim()) {
@@ -36,26 +71,44 @@ export const PoliceReportFormPage: React.FC = () => {
 
     setSubmitting(true);
     try {
-      await apiClient.createPoliceReport({
-        client_id: clientId,
-        client_name: clientName,
-        report_number: reportNumber.trim(),
-        report_year: reportYear,
-        report_type: reportType,
-        security_directorate: `مديرية أمن ${governorate}`,
-        police_station: policeStation.trim(),
-        general_prosecution: generalProsecution.trim(),
-        district_prosecution: districtProsecution.trim(),
-        status: "under_investigation",
-        subject: subject.trim(),
-        incident_summary: incidentSummary.trim() || undefined,
-        dispatch_number: dispatchNumber.trim() || undefined,
-        total_fees: fees,
-        total_expenses: 0,
-        linked_case_id: null,
-      });
-
-      navigate("/firm/police-reports");
+      if (isEdit && id) {
+        await apiClient.updatePoliceReport(id, {
+          client_id: clientId,
+          client_name: clientName,
+          report_number: reportNumber.trim(),
+          report_year: reportYear,
+          report_type: reportType,
+          security_directorate: `مديرية أمن ${governorate}`,
+          police_station: policeStation.trim(),
+          general_prosecution: generalProsecution.trim(),
+          district_prosecution: districtProsecution.trim(),
+          subject: subject.trim(),
+          incident_summary: incidentSummary.trim() || undefined,
+          dispatch_number: dispatchNumber.trim() || undefined,
+          total_fees: fees,
+        });
+        navigate(`/firm/police-reports/${id}`);
+      } else {
+        await apiClient.createPoliceReport({
+          client_id: clientId,
+          client_name: clientName,
+          report_number: reportNumber.trim(),
+          report_year: reportYear,
+          report_type: reportType,
+          security_directorate: `مديرية أمن ${governorate}`,
+          police_station: policeStation.trim(),
+          general_prosecution: generalProsecution.trim(),
+          district_prosecution: districtProsecution.trim(),
+          status: "under_investigation",
+          subject: subject.trim(),
+          incident_summary: incidentSummary.trim() || undefined,
+          dispatch_number: dispatchNumber.trim() || undefined,
+          total_fees: fees,
+          total_expenses: 0,
+          linked_case_id: null,
+        });
+        navigate("/firm/police-reports");
+      }
     } catch (err) {
       console.error(err);
       alert("حدث خطأ أثناء حفظ المحضر");
@@ -70,15 +123,15 @@ export const PoliceReportFormPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate("/firm/police-reports")}
+          onClick={() => navigate(isEdit ? `/firm/police-reports/${id}` : "/firm/police-reports")}
           className="text-slate-600 gap-1.5"
         >
           <ArrowRight className="w-4 h-4" />
-          رجوع للمحاضر
+          {isEdit ? "رجوع لتفاصيل المحضر" : "رجوع للمحاضر"}
         </Button>
         <span className="text-muted-foreground">/</span>
         <h1 className="text-xl sm:text-2xl font-bold font-headline text-primary">
-          تسجيل محضر شرطة جديد
+          {isEdit ? "تعديل بيانات محضر الشرطة" : "تسجيل محضر شرطة جديد"}
         </h1>
       </div>
 
@@ -268,7 +321,7 @@ export const PoliceReportFormPage: React.FC = () => {
           </Button>
           <Button type="submit" disabled={submitting} className="gap-2">
             <Save className="w-4 h-4" />
-            {submitting ? "جارٍ الحفظ..." : "حفظ وقيد المحضر"}
+            {submitting ? "جارٍ الحفظ..." : isEdit ? "تحديث بيانات المحضر" : "حفظ وقيد المحضر"}
           </Button>
         </div>
       </form>

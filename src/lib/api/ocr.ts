@@ -86,7 +86,7 @@ function generateClientMockResult(file: File): OcrAnalysisResponse {
         mimeType: file.type,
         processingTimeMs: 1420,
         ocrEngine: 'Google Cloud Vision (High Res)',
-        llmModel: 'Siyaq Legal Intelligence (v2.4)',
+        llmModel: 'Baseera Legal Intelligence (v2.5)',
         rawTextSnippet: 'جمهورية مصر العربية - وزارة الداخلية - محضر رقم 14820 لسنة 2024 جنح الدقي... أثبت الحاضر أمامي أحمد محمود السيد ضد طارق عبد العزيز...',
       },
     };
@@ -109,7 +109,7 @@ function generateClientMockResult(file: File): OcrAnalysisResponse {
         mimeType: file.type,
         processingTimeMs: 1250,
         ocrEngine: 'Google Cloud Vision (Document AI)',
-        llmModel: 'Siyaq Legal Intelligence (v2.4)',
+        llmModel: 'Baseera Legal Intelligence (v2.5)',
         rawTextSnippet: 'عقد إيجار وحدة تجارية مشاهرة... إنه في يوم الإثنين الموافق 01/03/2024 تحرر هذا العقد بين الطرف الأول شركة النيل والطرف الثاني حسام الدين...',
       },
     };
@@ -132,7 +132,7 @@ function generateClientMockResult(file: File): OcrAnalysisResponse {
       mimeType: file.type,
       processingTimeMs: 1380,
       ocrEngine: 'Google Cloud Vision (High Res)',
-      llmModel: 'Siyaq Legal Intelligence (v2.4)',
+      llmModel: 'Baseera Legal Intelligence (v2.5)',
       rawTextSnippet: 'محكمة شمال القاهرة الابتدائية - الدائرة 14 مدني كلي... بناء على طلب السيد خالد مصطفى الشناوي ضد سامح كمال الدين... مطالبة بتعويض قدره 800000...',
     },
   };

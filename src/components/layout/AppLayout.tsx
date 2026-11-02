@@ -17,6 +17,7 @@ import {
   FileText,
   User,
   X,
+  Menu,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Logo } from "../common/Logo";
@@ -46,11 +47,10 @@ export const AppLayout: React.FC = () => {
 
   // Authentic 5 bottom tabs on mobile from production Siyaq
   const mobileBottomTabs = [
-    { to: "/firm/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-    { to: "/firm/clients", label: "الموكلين", icon: Users },
+    { to: "/firm/dashboard", label: "الرئيسية", icon: LayoutDashboard },
     { to: "/firm/cases", label: "القضايا", icon: Briefcase },
+    { to: "/firm/clients", label: "الموكلين", icon: Users },
     { to: "/firm/sessions", label: "الجلسات", icon: Gavel },
-    { to: "/firm/settings", label: "الإعدادات", icon: Settings },
   ];
 
   return (
@@ -65,7 +65,7 @@ export const AppLayout: React.FC = () => {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
 
@@ -112,12 +112,12 @@ export const AppLayout: React.FC = () => {
         <OfflineBanner />
         <Header onOpenMobileMenu={() => setMobileMenuOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-6 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-6 custom-scrollbar">
           <Outlet />
         </main>
 
         {/* Authentic Mobile Bottom Navigation */}
-        <nav className="md:hidden flex border-t border-border bg-white shrink-0 fixed bottom-0 left-0 right-0 z-40 shadow-xs">
+        <nav className="md:hidden flex border-t border-border bg-white/95 backdrop-blur-md shrink-0 fixed bottom-0 left-0 right-0 z-40 shadow-lg pb-safe">
           {mobileBottomTabs.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -130,15 +130,29 @@ export const AppLayout: React.FC = () => {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex-1 py-2 flex flex-col items-center justify-center gap-0.5 text-center text-[10px] transition-colors",
-                  isActive ? "text-primary font-bold" : "text-tertiary hover:text-primary"
+                  "flex-1 py-2.5 flex flex-col items-center justify-center gap-1 text-center text-[10px] transition-all",
+                  isActive ? "text-primary font-bold scale-105" : "text-tertiary hover:text-primary"
                 )}
               >
-                <Icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-tertiary")} />
+                <div className={cn("p-1 rounded-lg transition-colors", isActive && "bg-primary/10 text-primary")}>
+                  <Icon className="w-4 h-4" />
+                </div>
                 <span>{item.label}</span>
               </NavLink>
             );
           })}
+
+          {/* 5th Tab: More / Drawer trigger */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex-1 py-2.5 flex flex-col items-center justify-center gap-1 text-center text-[10px] text-tertiary hover:text-primary transition-colors"
+          >
+            <div className="p-1 rounded-lg">
+              <Menu className="w-4 h-4" />
+            </div>
+            <span>المزيد</span>
+          </button>
         </nav>
       </div>
     </div>

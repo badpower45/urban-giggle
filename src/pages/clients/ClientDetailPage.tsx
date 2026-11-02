@@ -15,6 +15,7 @@ import {
   Gavel,
   Shield,
   FileText,
+  Edit,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { Client, Case, PowerOfAttorney, PoliceReport } from "../../types";
@@ -131,14 +132,26 @@ export const ClientDetailPage: React.FC = () => {
           <span className="font-bold text-sm text-primary">ملف الموكل</span>
         </div>
 
-        <Button
-          size="sm"
-          onClick={() => navigate(`/firm/cases/new`)}
-          className="gap-2 text-xs font-semibold"
-        >
-          <Plus className="w-4 h-4" />
-          إضافة قضية جديدة لهذا الموكل
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/firm/clients/${id}/edit`)}
+            className="gap-2 text-xs font-semibold bg-white border-slate-200 hover:bg-slate-50"
+          >
+            <Edit className="w-3.5 h-3.5 text-slate-600" />
+            <span>تعديل الموكل</span>
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={() => navigate(`/firm/cases/new`)}
+            className="gap-2 text-xs font-semibold bg-primary text-white hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" />
+            إضافة قضية جديدة لهذا الموكل
+          </Button>
+        </div>
       </div>
 
       {/* Client Profile Card */}

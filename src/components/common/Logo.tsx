@@ -27,14 +27,14 @@ export const Logo: React.FC<LogoProps> = ({
       >
         {!imgError ? (
           <img
-            src="/logo.webp"
-            alt="سياق"
+            src="/logo.svg"
+            alt="بصيرة"
             className="h-full w-full object-contain p-0.5"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary text-white font-bold text-sm">
-            س
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-600 to-slate-900 text-white font-bold text-sm">
+            ب
           </div>
         )}
       </div>
@@ -44,10 +44,10 @@ export const Logo: React.FC<LogoProps> = ({
         <div className="flex flex-col leading-none text-start">
           <div className="flex items-center gap-1.5">
             <span className={cn("text-lg font-bold font-headline tracking-tight", textColor)}>
-              سِـيَـاق
+              بَـصِـيـرَة
             </span>
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#C5A059]/10 text-[#9E7B35] border border-[#C5A059]/30 leading-none">
-              LEGAL
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 border border-blue-500/25 leading-none">
+              LEGAL OS
             </span>
           </div>
           <span className={cn("mt-1 text-[11px] font-medium truncate", subtextColor)}>

@@ -10,6 +10,7 @@ import {
   Link2,
   FileCheck,
   AlertTriangle,
+  Edit,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { PoliceReport, Case } from "../../types";
@@ -99,7 +100,17 @@ export const PoliceReportDetailPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/firm/police-reports/${id}/edit`)}
+            className="gap-1.5 text-xs bg-white"
+          >
+            <Edit className="w-3.5 h-3.5" />
+            تعديل المحضر
+          </Button>
+
           {report.linked_case_id ? (
             <Link
               to={`/firm/cases/${report.linked_case_id}`}

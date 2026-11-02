@@ -6,25 +6,31 @@ import {
   SupportComplaint,
   LeadStatus,
   TicketStatus,
-  TicketPriority,
+  TenantFirm,
+  PlatformInvoice,
+  SuperAdminUser,
+  FirmSubscriptionStatus,
 } from '../types/admin';
 
 // LocalStorage Keys
-const SETTINGS_KEY = 'siyaq_platform_settings';
-const PLANS_KEY = 'siyaq_platform_plans';
-const LEADS_KEY = 'siyaq_platform_leads';
-const TICKETS_KEY = 'siyaq_platform_tickets';
+const SETTINGS_KEY = 'baseera_platform_settings';
+const PLANS_KEY = 'baseera_platform_plans';
+const LEADS_KEY = 'baseera_platform_leads';
+const TICKETS_KEY = 'baseera_platform_tickets';
+const FIRMS_KEY = 'baseera_platform_firms';
+const INVOICES_KEY = 'baseera_platform_invoices';
+const SUPER_ADMIN_SESSION_KEY = 'baseera_superadmin_session';
 
 // Default Platform Settings
 export const DEFAULT_SETTINGS: PlatformSettings = {
-  systemName: 'سِـيَـاق',
-  systemSubtitle: 'نظام إدارة مكاتب وشركات المحاماة',
-  tagline: 'المنظومة السحابية المتكاملة للمحاكم والمحامين',
-  slogan: 'نظام لإدارة مكاتب المحاماة',
+  systemName: 'بَـصِـيـرَة',
+  systemSubtitle: 'نظام إدارة مكاتب وشركات المحاماة والذكاء القانوني',
+  tagline: 'المنظومة السحابية الذكية للمحاكم والمحامين',
+  slogan: 'نظام ذكي لإدارة مكاتب المحاماة',
   currency: 'ج.م',
-  contactEmail: 'support@siyaq.legal',
+  contactEmail: 'admin@baseera.legal',
   contactPhone: '01023456789',
-  supportEmail: 'support@siyaq.legal',
+  supportEmail: 'support@baseera.legal',
   supportPhone: '+20 102 345 6789',
   whatsappNumber: '201023456789',
   trialDays: 14,
@@ -40,6 +46,7 @@ export const DEFAULT_PLANS: AdminSubscriptionPlan[] = [
     annualPrice: 5000,
     description: 'مثالية للمحامي المستقل الذي يبحث عن تنظيم قضاياه ومواعيده بدقة وسرعة.',
     maxUsers: 2,
+    maxStorageGb: 5,
     storageGb: 5,
     isActive: true,
     features: [
@@ -59,6 +66,7 @@ export const DEFAULT_PLANS: AdminSubscriptionPlan[] = [
     description: 'الأكثر طلباً لمكاتب المحاماة التي تضم فريق عمل ومحامين ومساعدين.',
     isPopular: true,
     maxUsers: 10,
+    maxStorageGb: 50,
     storageGb: 50,
     isActive: true,
     badgeText: 'الأكثر شعبية',
@@ -80,6 +88,7 @@ export const DEFAULT_PLANS: AdminSubscriptionPlan[] = [
     annualPrice: 37000,
     description: 'حل متكامل للمؤسسات القانونية الكبرى والشركات متعددة الفروع.',
     maxUsers: 30,
+    maxStorageGb: 150,
     storageGb: 150,
     isActive: true,
     features: [
@@ -94,6 +103,222 @@ export const DEFAULT_PLANS: AdminSubscriptionPlan[] = [
   },
 ];
 
+// Initial Demo Law Firms (Multi-Tenant SaaS Directory)
+export const DEFAULT_FIRMS: TenantFirm[] = [
+  {
+    id: '01a08460-df3a-70c0-9a46-f3497eced7c7',
+    name: 'مكتب محمد السيد للمحاماة والاستشارات القانونية',
+    slug: 'sayed-legal',
+    ownerName: 'المستشار / محمد السيد',
+    ownerEmail: 'elezabybode375@gmail.com',
+    ownerPhone: '01012345678',
+    city: 'القاهرة',
+    address: '14 شارع مصطفى النحاس، مدينة نصر، القاهرة',
+    subscriptionPlan: 'enterprise',
+    subscriptionStatus: 'active',
+    billingCycle: 'yearly',
+    subscriptionEndsAt: '2027-09-09T00:00:00Z',
+    createdAt: '2026-01-10T10:00:00Z',
+    casesCount: 84,
+    clientsCount: 52,
+    usersCount: 8,
+    storageUsedMb: 14200,
+    maxUsers: 30,
+    maxStorageGb: 150,
+    isVerified: true,
+    notes: 'مكتب رئيسي متميز في القضايا المدنية والتجارية ومنازعات المقاولات.',
+  },
+  {
+    id: 'firm-02',
+    name: 'مجموعة طارق عبد العزيز للمحاماة والتحكيم الدولي',
+    slug: 'tarek-firm',
+    ownerName: 'المستشار / طارق عبد العزيز',
+    ownerEmail: 'tarek.law@gmail.com',
+    ownerPhone: '01098765432',
+    city: 'القاهرة الجديدة',
+    address: 'مجمع البنوك، التسعين الشمالي، التجمع الخامس',
+    subscriptionPlan: 'enterprise',
+    subscriptionStatus: 'active',
+    billingCycle: 'yearly',
+    subscriptionEndsAt: '2027-08-15T00:00:00Z',
+    createdAt: '2026-02-15T08:30:00Z',
+    casesCount: 132,
+    clientsCount: 95,
+    usersCount: 14,
+    storageUsedMb: 38400,
+    maxUsers: 30,
+    maxStorageGb: 150,
+    isVerified: true,
+    notes: 'متخصصون في التحكيم الدولي وعقود الفيديك والشركات المساهمة.',
+  },
+  {
+    id: 'firm-03',
+    name: 'مكتب ميادة كمال للمحاماة التجارية والملكية الفكرية',
+    slug: 'mayada-legal',
+    ownerName: 'الأستاذة / ميادة كمال',
+    ownerEmail: 'mayada.legal@outlook.com',
+    ownerPhone: '01123456789',
+    city: 'الإسكندرية',
+    address: 'أبراج سموحة، شارع فوزي معاذ، الإسكندرية',
+    subscriptionPlan: 'office',
+    subscriptionStatus: 'active',
+    billingCycle: 'monthly',
+    subscriptionEndsAt: '2026-11-20T00:00:00Z',
+    createdAt: '2026-03-20T12:00:00Z',
+    casesCount: 46,
+    clientsCount: 38,
+    usersCount: 5,
+    storageUsedMb: 8900,
+    maxUsers: 10,
+    maxStorageGb: 50,
+    isVerified: true,
+    notes: 'مكتب نشط جداً في قضايا المحاكم الاقتصادية والعلامات التجارية.',
+  },
+  {
+    id: 'firm-04',
+    name: 'الشناوي وشركاه للاستشارات القانونية والضرائب',
+    slug: 'elshinawy-law',
+    ownerName: 'الأستاذ / عمرو الشناوي',
+    ownerEmail: 'elshinawy.law@yahoo.com',
+    ownerPhone: '01234567890',
+    city: 'الجيزة',
+    address: 'شارع مصدق، الدقي، الجيزة',
+    subscriptionPlan: 'office',
+    subscriptionStatus: 'active',
+    billingCycle: 'yearly',
+    subscriptionEndsAt: '2027-05-10T00:00:00Z',
+    createdAt: '2026-05-10T09:00:00Z',
+    casesCount: 62,
+    clientsCount: 44,
+    usersCount: 7,
+    storageUsedMb: 12500,
+    maxUsers: 10,
+    maxStorageGb: 50,
+    isVerified: true,
+    notes: 'شراكة مع مكاتب محاسبة قانونية، تخصص ضرائب ومنازعات جمارك.',
+  },
+  {
+    id: 'firm-05',
+    name: 'مكتب المستشار حسام الدين للمحاماة الجنائية والنقض',
+    slug: 'hossam-law',
+    ownerName: 'المستشار / حسام الدين محمد',
+    ownerEmail: 'hossam@law.eg',
+    ownerPhone: '01511223344',
+    city: 'الدقهلية (المنصورة)',
+    address: 'شارع الجيش، أمام مجمع المحاكم، المنصورة',
+    subscriptionPlan: 'individual',
+    subscriptionStatus: 'active',
+    billingCycle: 'monthly',
+    subscriptionEndsAt: '2026-11-15T00:00:00Z',
+    createdAt: '2026-07-01T14:20:00Z',
+    casesCount: 29,
+    clientsCount: 22,
+    usersCount: 2,
+    storageUsedMb: 2400,
+    maxUsers: 2,
+    maxStorageGb: 5,
+    isVerified: true,
+    notes: 'محامٍ بالنقض الجنائي، يعتمد بكثافة على حاسبة مواعيد الطعن.',
+  },
+  {
+    id: 'firm-06',
+    name: 'مكتب الأستاذ أحمد البدري للمحاماة',
+    slug: 'elbadry-law',
+    ownerName: 'الأستاذ / أحمد البدري',
+    ownerEmail: 'elbadry.law@gmail.com',
+    ownerPhone: '01065432198',
+    city: 'الغربية (طنطا)',
+    address: 'شارع البحر، طنطا',
+    subscriptionPlan: 'office',
+    subscriptionStatus: 'trial',
+    billingCycle: 'monthly',
+    trialEndsAt: '2026-11-12T00:00:00Z',
+    createdAt: '2026-10-29T11:00:00Z',
+    casesCount: 8,
+    clientsCount: 7,
+    usersCount: 3,
+    storageUsedMb: 620,
+    maxUsers: 10,
+    maxStorageGb: 50,
+    isVerified: false,
+    notes: 'فترة تجريبية 14 يوماً - مهتم بنظام رول الجلسات بدون إنترنت.',
+  },
+];
+
+// Initial Platform SaaS Invoices
+export const DEFAULT_INVOICES: PlatformInvoice[] = [
+  {
+    id: 'inv-2026-001',
+    invoiceNumber: 'INV-BAS-2026-0089',
+    firmId: 'firm-02',
+    firmName: 'مجموعة طارق عبد العزيز للمحاماة والتحكيم الدولي',
+    planName: 'باقة المكاتب الكبرى (سنوي)',
+    amount: 37000,
+    currency: 'ج.م',
+    billingCycle: 'yearly',
+    paymentMethod: 'bank_transfer',
+    status: 'paid',
+    paidAt: '2026-08-15T11:30:00Z',
+    createdAt: '2026-08-15T09:00:00Z',
+  },
+  {
+    id: 'inv-2026-002',
+    invoiceNumber: 'INV-BAS-2026-0094',
+    firmId: '01a08460-df3a-70c0-9a46-f3497eced7c7',
+    firmName: 'مكتب محمد السيد للمحاماة والاستشارات القانونية',
+    planName: 'باقة المكاتب الكبرى (سنوي)',
+    amount: 37000,
+    currency: 'ج.م',
+    billingCycle: 'yearly',
+    paymentMethod: 'instapay',
+    status: 'paid',
+    paidAt: '2026-09-09T14:15:00Z',
+    createdAt: '2026-09-09T10:00:00Z',
+  },
+  {
+    id: 'inv-2026-003',
+    invoiceNumber: 'INV-BAS-2026-0105',
+    firmId: 'firm-04',
+    firmName: 'الشناوي وشركاه للاستشارات القانونية والضرائب',
+    planName: 'باقة المكاتب المتوسطة (سنوي)',
+    amount: 14000,
+    currency: 'ج.م',
+    billingCycle: 'yearly',
+    paymentMethod: 'credit_card',
+    status: 'paid',
+    paidAt: '2026-05-10T16:00:00Z',
+    createdAt: '2026-05-10T12:00:00Z',
+  },
+  {
+    id: 'inv-2026-004',
+    invoiceNumber: 'INV-BAS-2026-0142',
+    firmId: 'firm-03',
+    firmName: 'مكتب ميادة كمال للمحاماة التجارية',
+    planName: 'باقة المكاتب المتوسطة (شهري)',
+    amount: 1400,
+    currency: 'ج.م',
+    billingCycle: 'monthly',
+    paymentMethod: 'instapay',
+    status: 'paid',
+    paidAt: '2026-10-20T10:20:00Z',
+    createdAt: '2026-10-20T08:00:00Z',
+  },
+  {
+    id: 'inv-2026-005',
+    invoiceNumber: 'INV-BAS-2026-0158',
+    firmId: 'firm-05',
+    firmName: 'مكتب المستشار حسام الدين للمحاماة الجنائية',
+    planName: 'باقة المحامي الفردي (شهري)',
+    amount: 500,
+    currency: 'ج.م',
+    billingCycle: 'monthly',
+    paymentMethod: 'vodafone_cash',
+    status: 'paid',
+    paidAt: '2026-10-15T15:45:00Z',
+    createdAt: '2026-10-15T12:30:00Z',
+  },
+];
+
 // Initial Demo Leads from Landing Page
 export const DEFAULT_LEADS: ContactRequest[] = [
   {
@@ -104,9 +329,10 @@ export const DEFAULT_LEADS: ContactRequest[] = [
     email: 'tarek.law@gmail.com',
     city: 'القاهرة (التجمع الخامس)',
     team_size: '6-15',
-    message: 'نرغب في عرض توضيحي (ديمو) للنظام لفريق العمل لدينا لمعرفة كيفية نقل القضايا من الإكسيل لسياق.',
-    status: 'new',
+    message: 'نرغب في عرض توضيحي (ديمو) للنظام لفريق العمل لدينا لمعرفة كيفية نقل القضايا من الإكسيل لبصيرة.',
+    status: 'converted',
     created_at: '2026-09-18T14:30:00Z',
+    internal_notes: 'تم الاشتراك بالفعل في باقة المكاتب الكبرى.',
   },
   {
     id: 'lead-02',
@@ -117,9 +343,9 @@ export const DEFAULT_LEADS: ContactRequest[] = [
     city: 'الإسكندرية (سموحة)',
     team_size: '2-5',
     message: 'مهتمة بباقة المكاتب المتوسطة واستخدام منشئ العقود الذكية ونظام متابعة مواعيد الطعون.',
-    status: 'contacted',
+    status: 'converted',
     created_at: '2026-09-17T11:20:00Z',
-    internal_notes: 'تم الاتصال بها هاتفياً وتحديد موعد تجربة يوم الأحد القادم.',
+    internal_notes: 'تم تفعيل حساب المكتب والبدء بالباقة المتوسطة.',
   },
   {
     id: 'lead-03',
@@ -130,9 +356,34 @@ export const DEFAULT_LEADS: ContactRequest[] = [
     city: 'الجيزة (الدقي)',
     team_size: '15+',
     message: 'نبحث عن نظام متكامل لإدارة 4 فروع مع صلاحيات دقيقة للمحامين ومتابعة محاسبية للأتعاب.',
-    status: 'demo_scheduled',
+    status: 'converted',
     created_at: '2026-09-16T09:15:00Z',
-    internal_notes: 'حجز ديمو زووم مع الشركاء يوم الإثنين الساعة 2 ظهراً.',
+    internal_notes: 'تم الربط بالباقة المتوسطة مع إمكانية الترقية.',
+  },
+  {
+    id: 'lead-04',
+    full_name: 'المستشار / وائل سلامة',
+    firm_name: 'مجموعة سلامة للمحاماة والتحكيم الهندسي',
+    phone: '01011447788',
+    email: 'wael.salama@law.com.eg',
+    city: 'القاهرة (المعادي)',
+    team_size: '6-15',
+    message: 'نحتاج تجربة لنظام الرول الذكي ومزامنة قاعة المحكمة أوفلاين مع 5 محامين بالمكتب.',
+    status: 'demo_scheduled',
+    created_at: '2026-11-01T15:00:00Z',
+    internal_notes: 'موعد الديمو عبر زووم غداً الساعة 4 عصراً.',
+  },
+  {
+    id: 'lead-05',
+    full_name: 'الأستاذة / رانيا الشافعي',
+    firm_name: 'مكتب الشافعي للمنازعات العمالية والمدنية',
+    phone: '01288990011',
+    email: 'rania.shafie@gmail.com',
+    city: 'بورسعيد',
+    team_size: '2-5',
+    message: 'نريد الاستفسار عن إمكانية نقل قضايا 3 سنوات سابقة ومستندات موكلينا إلى النظام.',
+    status: 'new',
+    created_at: '2026-11-02T10:15:00Z',
   },
 ];
 
@@ -141,31 +392,32 @@ export const DEFAULT_COMPLAINTS: SupportComplaint[] = [
   {
     id: 'ticket-101',
     ticket_number: 'TCK-2026-081',
-    firm_name: 'مكتب الأمل للمحاماة',
-    user_name: 'الأستاذ / عبد الرحمن رضوان',
+    firm_name: 'مكتب محمد السيد للمحاماة',
+    user_name: 'المستشار / محمد السيد',
     user_phone: '01012345678',
-    user_email: 'radwan@amal-law.com',
+    user_email: 'elezabybode375@gmail.com',
     category: 'technical',
     priority: 'urgent',
-    subject: 'عدم ظهور قرار الجلسة المنعقدة اليوم في رول المحكمة بعد الحفظ',
-    message: 'قمت بإدخال قرار جلسة محكمة شمال القاهرة الابتدائية برول اليوم ولم يظهر في الإشعارات الفورية للمساعدين في المكتب، أرجو المراجعة سريعاً.',
-    status: 'new',
-    created_at: '2026-09-18T16:45:00Z',
+    subject: 'مزامنة رول جلسات محكمة شمال القاهرة الابتدائية بعد الخروج من القاعة',
+    message: 'تم إدخال قرار تأجيل جلسة اليوم في وضع الأوفلاين، ونريد التأكد من اكتمال رفع المستند في السحابة فور عودة الشبكة.',
+    status: 'resolved',
+    created_at: '2026-11-01T14:45:00Z',
+    resolution_notes: 'تم التحقق من اكتمال المزامنة وظهور القرار في أجندة المكتب بنجاح.',
   },
   {
     id: 'ticket-102',
     ticket_number: 'TCK-2026-079',
-    firm_name: 'مؤسسة العدالة الدولية',
-    user_name: 'الأستاذة / نورهان سليم',
-    user_phone: '01298765432',
-    user_email: 'nourhan@justice-intl.com',
+    firm_name: 'مجموعة طارق عبد العزيز للمحاماة',
+    user_name: 'المستشار / طارق عبد العزيز',
+    user_phone: '01098765432',
+    user_email: 'tarek.law@gmail.com',
     category: 'billing',
     priority: 'high',
-    subject: 'استفسار بخصوص تجديد الاشتراك السنوي وإصدار فاتورة إلكترونية باسم الشركة',
-    message: 'نريد ترقية باقتنا للباقة الكبرى مع سداد سنوي، ونحتاج إصدار فاتورة ضريبية رسمية باسم شركتنا برقم السجل والبطاقة الضريبية.',
+    subject: 'طلب إصدار فاتورة إلكترونية ضريبية رسمية باشتراك العام القادم',
+    message: 'نريد إصدار فاتورة ضريبية إلكترونية رسمية باسم شركتنا متضمنة رقم السجل التجاري والبطاقة الضريبية لخصمها في المركز المالي.',
     status: 'in_progress',
-    created_at: '2026-09-17T13:10:00Z',
-    resolution_notes: 'تم التواصل من قسم الحسابات وجارٍ إصدار الفاتورة الضريبية.',
+    created_at: '2026-10-28T13:10:00Z',
+    resolution_notes: 'تم تحويل الطلب لقسم الحسابات والمالية لإصدار الفاتورة الضريبية.',
   },
   {
     id: 'ticket-103',
@@ -176,13 +428,23 @@ export const DEFAULT_COMPLAINTS: SupportComplaint[] = [
     user_email: 'hossam@law.eg',
     category: 'feature_request',
     priority: 'medium',
-    subject: 'اقتراح لإضافة تنبيه عبر الرسائل النصية القصيرة SMS للموكلين بمواعيد جلساتهم',
-    message: 'النظام ممتاز جداً، ونقترح إضافة ميزة إرسال رسالة SMS تلقائية للموكل تبلغه بميعاد جلسته القادمة وقرار المحكمة مباشرة.',
+    subject: 'اقتراح إضافة تنبيه تلقائي بميعاد الطعن عبر واتساب للموكل مع إرفاق نص الحكم',
+    message: 'النظام مذهل في احتساب مواعيد الطعون، ونقترح إضافة زر مباشر لإرسال ملخص الميعاد القانوني إلى واتساب الموكل بنص رسمي.',
     status: 'resolved',
-    created_at: '2026-09-15T10:00:00Z',
-    resolution_notes: 'تمت إضافة الميزة لخارطة طريق التحديثات القادمة وإبلاغ المحامي.',
+    created_at: '2026-10-20T10:00:00Z',
+    resolution_notes: 'تمت إضافة ميزة المشاركة الفورية عبر واتساب في حاسبة الطعون.',
   },
 ];
+
+// Super Admin Default Credentials (For Platform SaaS Owners)
+export const DEFAULT_SUPER_ADMIN: SuperAdminUser = {
+  id: 'super-admin-01',
+  email: 'admin@baseera.legal',
+  fullName: 'المدير التنفيذي للمنصة',
+  role: 'super_admin',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  lastLoginAt: new Date().toISOString(),
+};
 
 // In-memory listeners for cross-component reactive updates
 type Listener = () => void;
@@ -194,6 +456,29 @@ function notify() {
 
 // Global state getters & setters with localStorage persistence
 export const platformStorage = {
+  // Super Admin Session
+  getSuperAdminSession(): SuperAdminUser | null {
+    try {
+      const stored = localStorage.getItem(SUPER_ADMIN_SESSION_KEY) || sessionStorage.getItem(SUPER_ADMIN_SESSION_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return null;
+  },
+  setSuperAdminSession(user: SuperAdminUser | null, remember: boolean = true) {
+    if (user) {
+      const data = JSON.stringify(user);
+      if (remember) {
+        localStorage.setItem(SUPER_ADMIN_SESSION_KEY, data);
+      } else {
+        sessionStorage.setItem(SUPER_ADMIN_SESSION_KEY, data);
+      }
+    } else {
+      localStorage.removeItem(SUPER_ADMIN_SESSION_KEY);
+      sessionStorage.removeItem(SUPER_ADMIN_SESSION_KEY);
+    }
+    notify();
+  },
+
   // Settings
   getSettings(): PlatformSettings {
     try {
@@ -224,6 +509,108 @@ export const platformStorage = {
       p.id === id ? { ...p, monthlyPrice, annualPrice } : p
     );
     this.savePlans(plans);
+  },
+
+  // Tenant Law Firms (Multi-Tenancy)
+  getFirms(): TenantFirm[] {
+    try {
+      const stored = localStorage.getItem(FIRMS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return DEFAULT_FIRMS;
+  },
+  saveFirms(firms: TenantFirm[]) {
+    localStorage.setItem(FIRMS_KEY, JSON.stringify(firms));
+    notify();
+  },
+  addFirm(firmData: Omit<TenantFirm, 'id' | 'createdAt' | 'casesCount' | 'clientsCount' | 'usersCount' | 'storageUsedMb'>) {
+    const newFirm: TenantFirm = {
+      ...firmData,
+      id: `firm-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      casesCount: 0,
+      clientsCount: 0,
+      usersCount: 1,
+      storageUsedMb: 10,
+    };
+    const current = this.getFirms();
+    this.saveFirms([newFirm, ...current]);
+    return newFirm;
+  },
+  updateFirm(id: string, data: Partial<TenantFirm>) {
+    const firms = this.getFirms().map((f) => (f.id === id ? { ...f, ...data } : f));
+    this.saveFirms(firms);
+  },
+  extendFirmTrial(id: string, days: number = 14) {
+    const firms = this.getFirms().map((f) => {
+      if (f.id === id) {
+        const currentEnd = f.trialEndsAt ? new Date(f.trialEndsAt) : new Date();
+        const newEnd = new Date(currentEnd.getTime() + days * 24 * 60 * 60 * 1000);
+        return {
+          ...f,
+          subscriptionStatus: 'trial' as FirmSubscriptionStatus,
+          trialEndsAt: newEnd.toISOString(),
+        };
+      }
+      return f;
+    });
+    this.saveFirms(firms);
+  },
+  toggleFirmStatus(id: string, newStatus: FirmSubscriptionStatus) {
+    const firms = this.getFirms().map((f) => (f.id === id ? { ...f, subscriptionStatus: newStatus } : f));
+    this.saveFirms(firms);
+  },
+  updateFirmPlan(id: string, plan: 'individual' | 'office' | 'enterprise') {
+    const quotas = {
+      individual: { maxUsers: 2, maxStorageGb: 5 },
+      office: { maxUsers: 10, maxStorageGb: 50 },
+      enterprise: { maxUsers: 30, maxStorageGb: 150 },
+    }[plan];
+
+    const firms = this.getFirms().map((f) =>
+      f.id === id
+        ? {
+            ...f,
+            subscriptionPlan: plan,
+            maxUsers: quotas.maxUsers,
+            maxStorageGb: quotas.maxStorageGb,
+          }
+        : f
+    );
+    this.saveFirms(firms);
+  },
+  deleteFirm(id: string) {
+    const firms = this.getFirms().filter((f) => f.id !== id);
+    this.saveFirms(firms);
+  },
+
+  // Platform Invoices
+  getInvoices(): PlatformInvoice[] {
+    try {
+      const stored = localStorage.getItem(INVOICES_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return DEFAULT_INVOICES;
+  },
+  saveInvoices(invoices: PlatformInvoice[]) {
+    localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+    notify();
+  },
+  addInvoice(inv: Omit<PlatformInvoice, 'id' | 'createdAt'>) {
+    const newInvoice: PlatformInvoice = {
+      ...inv,
+      id: `inv-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    const current = this.getInvoices();
+    this.saveInvoices([newInvoice, ...current]);
+    return newInvoice;
+  },
+  updateInvoiceStatus(id: string, status: 'paid' | 'pending' | 'failed' | 'refunded', paidAt?: string) {
+    const invoices = this.getInvoices().map((inv) =>
+      inv.id === id ? { ...inv, status, ...(paidAt ? { paidAt } : {}) } : inv
+    );
+    this.saveInvoices(invoices);
   },
 
   // Leads
@@ -302,31 +689,108 @@ export function usePlatformStore() {
     };
   }, []);
 
+  const adminSession = platformStorage.getSuperAdminSession();
   const settings = platformStorage.getSettings();
   const plans = platformStorage.getPlans();
+  const firms = platformStorage.getFirms();
+  const invoices = platformStorage.getInvoices();
   const leads = platformStorage.getLeads();
   const complaints = platformStorage.getComplaints();
 
-  // Calculated stats
+  // Financial & platform stats calculation
+  const activeFirms = firms.filter((f) => f.subscriptionStatus === 'active');
+  const trialFirms = firms.filter((f) => f.subscriptionStatus === 'trial');
+  
+  // Calculate approximate MRR from active firms
+  const monthlyRevenueEstimate = activeFirms.reduce((acc, firm) => {
+    const plan = plans.find((p) => p.id === firm.subscriptionPlan);
+    if (!plan) return acc;
+    if (firm.billingCycle === 'monthly') {
+      return acc + plan.monthlyPrice;
+    } else {
+      return acc + Math.round(plan.annualPrice / 12);
+    }
+  }, 0);
+
+  const annualRunRate = monthlyRevenueEstimate * 12;
+  const totalUsersCount = firms.reduce((acc, f) => acc + (f.usersCount || 1), 0);
+  const totalCasesCount = firms.reduce((acc, f) => acc + (f.casesCount || 0), 0);
+
   const stats = {
     totalLeads: leads.length,
     newLeadsCount: leads.filter((l) => l.status === 'new').length,
     openTicketsCount: complaints.filter((c) => c.status === 'new' || c.status === 'in_progress').length,
     urgentTicketsCount: complaints.filter((c) => c.priority === 'urgent' && c.status !== 'closed').length,
-    totalSubscribedFirms: 124, // Mock metric
-    monthlyRevenueEstimate: 1400 * 80 + 3700 * 30 + 500 * 14,
+    totalSubscribedFirms: firms.length,
+    activeFirmsCount: activeFirms.length,
+    trialFirmsCount: trialFirms.length,
+    totalUsersCount,
+    totalCasesCount,
+    monthlyRevenueEstimate,
+    annualRunRate,
   };
 
   return {
+    adminSession,
+    isSuperAdminAuthenticated: !!adminSession,
+    loginSuperAdmin: (email: string, pass: string, remember: boolean = true) => {
+      const cleanEmail = email.trim().toLowerCase();
+      // Valid credentials check: default admin or demo master
+      const valid =
+        (cleanEmail === 'admin@baseera.legal' && (pass === 'superadmin2026' || pass === 'admin123' || pass === 'password123')) ||
+        (cleanEmail === 'elezabybode375@gmail.com' && (pass === 'password123' || pass === 'superadmin2026')) ||
+        pass === 'superadmin2026' || pass === 'admin123';
+
+      if (!valid) {
+        return { success: false, error: 'البريد الإلكتروني أو كلمة المرور الرئيسية للإدارة غير صحيحة.' };
+      }
+
+      const user: SuperAdminUser = {
+        id: 'super-admin-01',
+        email: cleanEmail || DEFAULT_SUPER_ADMIN.email,
+        fullName: cleanEmail.includes('elezaby') ? 'م. عبد الرحمن العزبي (المالك)' : 'المشرف العام للمنصة',
+        role: 'super_admin',
+        avatarUrl: DEFAULT_SUPER_ADMIN.avatarUrl,
+        lastLoginAt: new Date().toISOString(),
+      };
+
+      platformStorage.setSuperAdminSession(user, remember);
+      return { success: true, user };
+    },
+    logoutSuperAdmin: () => {
+      platformStorage.setSuperAdminSession(null);
+    },
     settings,
     plans,
+    firms,
+    invoices,
     leads,
     complaints,
     stats,
+
+    // Actions
     updateSettings: (s: PlatformSettings) => platformStorage.saveSettings(s),
     updatePlans: (p: AdminSubscriptionPlan[]) => platformStorage.savePlans(p),
     updatePlanPrice: (id: string, monthly: number, annual: number) =>
       platformStorage.updatePlanPrice(id, monthly, annual),
+
+    // Firm actions
+    addFirm: (f: Parameters<typeof platformStorage.addFirm>[0]) => platformStorage.addFirm(f),
+    updateFirm: (id: string, data: Partial<TenantFirm>) => platformStorage.updateFirm(id, data),
+    extendFirmTrial: (id: string, days?: number) => platformStorage.extendFirmTrial(id, days),
+    toggleFirmStatus: (id: string, status: FirmSubscriptionStatus) =>
+      platformStorage.toggleFirmStatus(id, status),
+    updateFirmPlan: (id: string, plan: 'individual' | 'office' | 'enterprise') =>
+      platformStorage.updateFirmPlan(id, plan),
+    deleteFirm: (id: string) => platformStorage.deleteFirm(id),
+
+    // Invoices actions
+    addInvoice: (inv: Parameters<typeof platformStorage.addInvoice>[0]) =>
+      platformStorage.addInvoice(inv),
+    updateInvoiceStatus: (id: string, status: Parameters<typeof platformStorage.updateInvoiceStatus>[1], paidAt?: string) =>
+      platformStorage.updateInvoiceStatus(id, status, paidAt),
+
+    // Leads & Tickets actions
     addLead: (l: Omit<ContactRequest, 'id' | 'created_at' | 'status'>) =>
       platformStorage.addLead(l),
     updateLeadStatus: (id: string, status: LeadStatus, notes?: string) =>

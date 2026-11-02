@@ -116,17 +116,17 @@ export function interpolateHtml(
     if (isFilled) {
       const displayVal = formatDisplayValue(val, key);
       if (options.highlight) {
-        return `<span class="siyaq-interpolated-highlight bg-amber-100 text-amber-950 font-semibold px-1.5 py-0.5 rounded border-b-2 border-amber-500 transition-colors">${displayVal}</span>`;
+        return `<span class="baseera-interpolated-highlight siyaq-interpolated-highlight bg-blue-100 text-blue-950 font-semibold px-1.5 py-0.5 rounded border-b-2 border-blue-500 transition-colors">${displayVal}</span>`;
       }
-      return `<span class="siyaq-interpolated-value font-medium">${displayVal}</span>`;
+      return `<span class="baseera-interpolated-value siyaq-interpolated-value font-medium">${displayVal}</span>`;
     }
 
     if (options.renderUnfilledAsBadge) {
-      return `<span class="siyaq-unfilled-chip inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-300 border-dashed" title="حقل غير مكتمل: ${label}">[ ${label} - مطلوب ]</span>`;
+      return `<span class="baseera-unfilled-chip siyaq-unfilled-chip inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-300 border-dashed" title="حقل غير مكتمل: ${label}">[ ${label} - مطلوب ]</span>`;
     }
 
     // Default underline placeholder for clean legal drafts
-    return `<span class="siyaq-empty-placeholder inline-block min-w-[80px] border-b border-dashed border-slate-400 text-slate-400 text-xs text-center px-2">[ ${label} ]</span>`;
+    return `<span class="baseera-empty-placeholder siyaq-empty-placeholder inline-block min-w-[80px] border-b border-dashed border-slate-400 text-slate-400 text-xs text-center px-2">[ ${label} ]</span>`;
   });
 
   // 2. Replace any raw {{variable_key}} that might remain
@@ -138,9 +138,9 @@ export function interpolateHtml(
     if (isFilled) {
       const displayVal = formatDisplayValue(val, key);
       if (options.highlight) {
-        return `<span class="siyaq-interpolated-highlight bg-amber-100 text-amber-950 font-semibold px-1.5 py-0.5 rounded border-b-2 border-amber-500">${displayVal}</span>`;
+        return `<span class="baseera-interpolated-highlight siyaq-interpolated-highlight bg-blue-100 text-blue-950 font-semibold px-1.5 py-0.5 rounded border-b-2 border-blue-500">${displayVal}</span>`;
       }
-      return `<span class="siyaq-interpolated-value font-medium">${displayVal}</span>`;
+      return `<span class="baseera-interpolated-value siyaq-interpolated-value font-medium">${displayVal}</span>`;
     }
 
     if (options.renderUnfilledAsBadge) {

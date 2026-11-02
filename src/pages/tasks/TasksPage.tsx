@@ -10,8 +10,11 @@ import {
   Calendar,
   Briefcase,
   X,
+  Users,
 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
+import { appStore } from "../../lib/api/store";
+import { useToast } from "../../components/common/Toast";
 import { Task, TaskStatus, TaskPriority, Case, FirmMember } from "../../types";
 import { CountBadge } from "../../components/common/CountBadge";
 import { ViewToggle } from "../../components/common/ViewToggle";
@@ -26,6 +29,8 @@ import {
 import { formatDate } from "../../lib/utils";
 
 export const TasksPage: React.FC = () => {
+  const { showToast } = useToast();
+  const currentUser = appStore.getState().user;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [members, setMembers] = useState<FirmMember[]>([]);
@@ -95,8 +100,13 @@ export const TasksPage: React.FC = () => {
       setDueDate("");
       setDescription("");
       await loadData();
+      showToast(
+        `تم تكليف ${matchedMember?.full_name ? `الأستاذ/ة ${matchedMember.full_name}` : "عضو الفريق"} بالمهمة وإرسال التنبيه لحسابه بنجاح!`,
+        "success"
+      );
     } catch (err) {
       console.error(err);
+      showToast("حدث خطأ أثناء حفظ التكليف", "error");
     } finally {
       setSubmitting(false);
     }
@@ -108,6 +118,13 @@ export const TasksPage: React.FC = () => {
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
       );
+      const statusLabels: Record<TaskStatus, string> = {
+        pending: "قيد الانتظار",
+        in_progress: "جارٍ التنفيذ",
+        completed: "مكتملة ✓",
+        cancelled: "ملغاة",
+      };
+      showToast(`تم تحديث حالة المهمة إلى: ${statusLabels[newStatus]}`, "info");
     } catch (err) {
       console.error(err);
     }
@@ -116,7 +133,14 @@ export const TasksPage: React.FC = () => {
   const filteredTasks = tasks.filter((task) => {
     const matchesStatus = statusFilter === "all" || task.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
-    const matchesAssigned = assignedFilter === "all" || task.assigned_to === assignedFilter;
+    const matchesAssigned =
+      assignedFilter === "all" ||
+      task.assigned_to === assignedFilter ||
+      (assignedFilter === "me" &&
+        (task.assigned_to === currentUser.id ||
+          task.assigned_to_name === currentUser.full_name ||
+          task.assigned_to_name?.includes(currentUser.full_name?.split(" ")[0] || ""))) ||
+      task.assigned_to_name === assignedFilter;
     return matchesStatus && matchesPriority && matchesAssigned;
   });
 
@@ -207,14 +231,28 @@ export const TasksPage: React.FC = () => {
             onChange={(e) => setAssignedFilter(e.target.value)}
             className="w-full h-10 px-3 rounded-lg border border-border bg-white text-xs text-primary focus:outline-none focus:border-primary"
           >
-            <option value="all">كل أعضاء الفريق</option>
+            <option value="all">كل أعضاء الفريق ({members.length})</option>
+            <option value="me">مهامي أنا ({currentUser.full_name})</option>
             {members.map((m) => (
               <option key={m.user_id} value={m.user_id}>
-                {m.full_name}
+                {m.full_name} ({m.role_name || "محامٍ"})
               </option>
             ))}
           </select>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setAssignedFilter(assignedFilter === "me" ? "all" : "me")}
+          className={`h-10 px-3.5 rounded-lg text-xs font-bold transition-all border flex items-center justify-center gap-1.5 shrink-0 ${
+            assignedFilter === "me"
+              ? "bg-secondary text-white border-secondary shadow-xs"
+              : "bg-white text-slate-700 border-border hover:bg-slate-50"
+          }`}
+        >
+          <User className="w-3.5 h-3.5" />
+          <span>مهامي أنا فقط</span>
+        </button>
       </div>
 
       {/* Main Content: Kanban or Table */}

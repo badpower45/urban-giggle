@@ -244,7 +244,7 @@ export const CaseDetailPage: React.FC = () => {
           </div>
           <div className="p-3 sm:p-4 text-center">
             <span className="text-[11px] text-muted-foreground block">المتبقي للتحصيل</span>
-            <span className="text-sm sm:text-base font-bold text-amber-700 font-mono mt-0.5 block">
+            <span className="text-sm sm:text-base font-bold text-blue-700 font-mono mt-0.5 block">
               {formatCurrency(outstanding)}
             </span>
           </div>

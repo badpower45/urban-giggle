@@ -3,12 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   :root {
     --color-primary: #1a2b3c;
     --color-primary-hover: #243b50;
     --color-primary-foreground: #ffffff;
-    --color-secondary: #c5a059;
-    --color-secondary-hover: #b18d4b;
+    --color-secondary: #2563eb;
+    --color-secondary-hover: #1d4ed8;
     --color-secondary-foreground: #ffffff;
     --color-tertiary: #707781;
     --color-neutral: #f8f9fa;
@@ -29,7 +33,74 @@
   body {
     @apply bg-neutral text-primary font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Hardware-Accelerated Animation Keyframes */
+@keyframes floatSmooth {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulseGlowSubtle {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmerGrad {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-float-smooth {
+  animation: floatSmooth 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-glow-subtle {
+  animation: pulseGlowSubtle 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmerGrad 4s linear infinite;
+}
+
+/* GPU Accelerated Smooth Layer */
+.gpu-layer {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Off-screen performance optimization for buttery 120fps scrolling */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 650px;
+}
+
+/* Safe Area Insets for Mobile App (iOS / Android Notch & Home Bar) */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
 }
 
 /* Custom Scrollbar */

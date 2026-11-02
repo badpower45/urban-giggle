@@ -56,11 +56,11 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
   };
 
   const logoPresets: Array<{ id: ContractLogoPreset; name: string }> = [
-    { id: 'scales_gold', name: 'ميزان ذهبي' },
+    { id: 'scales_gold', name: 'ميزان العدالة الملكي' },
     { id: 'shield_navy', name: 'درع المحاماة' },
     { id: 'notary_seal', name: 'ختم التوثيق' },
     { id: 'court_pillars', name: 'صرح القضاء' },
-    { id: 'siyaq_default', name: 'شعار سياق' },
+    { id: 'siyaq_default', name: 'شعار بصيرة' },
   ];
 
   const borderStyles: Array<{ id: ContractBorderStyle; name: string; desc: string }> = [
@@ -80,7 +80,7 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
       <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto p-6 text-primary" dir="rtl">
         <DialogHeader className="space-y-1.5 text-right border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-amber-100 text-amber-900">
+            <span className="p-1.5 rounded-lg bg-blue-100 text-blue-900">
               <Palette className="w-4 h-4" />
             </span>
             <DialogTitle className="text-base sm:text-lg font-bold">
@@ -110,7 +110,7 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
                   }
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all text-center ${
                     localSettings.logoType === preset.id
-                      ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-300 ring-offset-1 font-bold'
+                      ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-300 ring-offset-1 font-bold'
                       : 'border-border hover:bg-neutral'
                   }`}
                 >
@@ -126,8 +126,8 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
                 onClick={() => fileInputRef.current?.click()}
                 className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl border border-dashed cursor-pointer transition-all text-center ${
                   localSettings.logoType === 'custom' && localSettings.customLogoUrl
-                    ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-300'
-                    : 'border-border hover:border-amber-400 hover:bg-amber-50/50'
+                    ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-300'
+                    : 'border-border hover:border-blue-400 hover:bg-blue-50/50'
                 }`}
               >
                 <input
@@ -144,9 +144,9 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
                     className="w-8 h-8 object-contain rounded"
                   />
                 ) : (
-                  <Upload className="w-5 h-5 text-amber-700" />
+                  <Upload className="w-5 h-5 text-blue-700" />
                 )}
-                <span className="text-[10px] text-amber-900 font-bold truncate">
+                <span className="text-[10px] text-blue-900 font-bold truncate">
                   {localSettings.customLogoUrl ? 'تغيير صورتك' : 'رفع لوجو خاص'}
                 </span>
               </div>
@@ -257,7 +257,7 @@ export const ContractDesignSettingsModal: React.FC<ContractDesignSettingsModalPr
                   }
                   className={`flex flex-col items-start p-2.5 rounded-xl border text-right transition-all ${
                     localSettings.borderStyle === b.id
-                      ? 'border-amber-600 bg-amber-50/70 ring-2 ring-amber-300'
+                      ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-300'
                       : 'border-border hover:bg-neutral'
                   }`}
                 >

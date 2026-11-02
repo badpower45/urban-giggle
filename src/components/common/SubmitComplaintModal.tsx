@@ -14,6 +14,7 @@ import { usePlatformStore } from '../../lib/platformStore';
 import { TicketCategory, TicketPriority } from '../../types/admin';
 import { ShieldAlert, Send } from 'lucide-react';
 import { useToast } from './Toast';
+import { supabaseService } from '../../lib/supabase/client';
 
 interface SubmitComplaintModalProps {
   open: boolean;
@@ -34,7 +35,7 @@ export const SubmitComplaintModal: React.FC<SubmitComplaintModalProps> = ({
   const [firmName, setFirmName] = useState(defaultFirmName);
   const [userName, setUserName] = useState(defaultUserName);
   const [phone, setPhone] = useState('01012345678');
-  const [email, setEmail] = useState('lawyer@siyaq.legal');
+  const [email, setEmail] = useState('lawyer@baseera.legal');
   const [category, setCategory] = useState<TicketCategory>('technical');
   const [priority, setPriority] = useState<TicketPriority>('medium');
   const [subject, setSubject] = useState('');
@@ -54,6 +55,16 @@ export const SubmitComplaintModal: React.FC<SubmitComplaintModalProps> = ({
       subject: subject.trim(),
       message: message.trim(),
     });
+
+    if (supabaseService.isConfigured()) {
+      supabaseService.submitTicket({
+        user_name: userName,
+        user_email: email,
+        subject: subject.trim(),
+        category,
+        message: message.trim(),
+      }).catch((err) => console.warn('[Supabase] Ticket sync warning:', err));
+    }
 
     onOpenChange(false);
     setSubject('');

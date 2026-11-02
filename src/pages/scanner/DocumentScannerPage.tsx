@@ -32,7 +32,7 @@ export const DocumentScannerPage: React.FC = () => {
           </div>
           <span>•</span>
           <div className="flex items-center gap-1">
-            <Zap className="h-4 w-4 text-amber-500" />
+            <Zap className="h-4 w-4 text-blue-500" />
             <span>معالجة فورية</span>
           </div>
         </div>

@@ -22,7 +22,7 @@ export const SubscriptionPage: React.FC = () => {
       {/* Current Subscription Status Card */}
       <div className="rounded-xl border border-border bg-white p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#9E7B35] shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
@@ -74,7 +74,7 @@ export const SubscriptionPage: React.FC = () => {
             }`}
           >
             <span>دفع سنوي</span>
-            <span className="bg-[#C5A059]/15 text-[#9E7B35] text-[10px] px-1.5 py-0.2 rounded font-bold">
+            <span className="bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.2 rounded font-bold border border-blue-200">
               خصم شهرين
             </span>
           </button>

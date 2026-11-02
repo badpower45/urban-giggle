@@ -14,7 +14,7 @@ import {
   PowerOfAttorney
 } from '../../types';
 
-const STORAGE_KEY = 'siyaq_app_data_v1';
+const STORAGE_KEY = 'baseera_app_data_v1';
 
 const now = new Date();
 const addDays = (d: Date, days: number) => {
@@ -36,7 +36,7 @@ export const INITIAL_USER: User = {
 export const INITIAL_FIRM: Firm = {
   id: '01a08460-df3a-70c0-9a46-f3497eced7c7',
   name: 'مكتب محمد السيد للمحاماة والاستشارات القانونية',
-  logo_url: '/logo.webp',
+  logo_url: '/logo.svg',
   created_at: '2026-09-09T00:00:00Z',
 };
 
@@ -81,7 +81,7 @@ export const INITIAL_MEMBERS: FirmMember[] = [
   {
     user_id: 'user-2',
     full_name: 'خالد السعيد',
-    email: 'khaled@siyaq.legal',
+    email: 'khaled@baseera.legal',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     role_id: '019e413f-f4b4-7bb5-98d8-524f44e15cd4',
     role_name: 'محامٍ أساسي',
@@ -91,7 +91,7 @@ export const INITIAL_MEMBERS: FirmMember[] = [
   {
     user_id: 'user-3',
     full_name: 'منى إبراهيم',
-    email: 'mona@siyaq.legal',
+    email: 'mona@baseera.legal',
     avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     role_id: '019e413f-f4b5-7856-abc3-76500ed100c4',
     role_name: 'مساعد قانوني',
@@ -685,7 +685,7 @@ class Store {
   private load(): AppData {
     if (typeof window === 'undefined') return this.getInitialData();
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('siyaq_app_data_v1');
       if (saved) {
         return JSON.parse(saved);
       }
@@ -750,12 +750,17 @@ class Store {
     return this.data.cases;
   }
 
+  public setCases(cases: Case[]) {
+    this.data.cases = cases;
+    this.notify();
+  }
+
   public getCaseById(id: string): Case | undefined {
     return this.data.cases.find((c) => c.id === id);
   }
 
-  public addCase(newCase: Omit<Case, 'id' | 'created_at' | 'updated_at' | 'sessions_count' | 'pending_deadlines_count'>): Case {
-    const id = `case-${Date.now()}`;
+  public addCase(newCase: Omit<Case, 'id' | 'created_at' | 'updated_at' | 'sessions_count' | 'pending_deadlines_count'> & { id?: string }): Case {
+    const id = newCase.id || `case-${Date.now()}`;
     const created: Case = {
       ...newCase,
       id,
@@ -806,12 +811,17 @@ class Store {
     return this.data.clients;
   }
 
+  public setClients(clients: Client[]) {
+    this.data.clients = clients;
+    this.notify();
+  }
+
   public getClientById(id: string): Client | undefined {
     return this.data.clients.find((c) => c.id === id);
   }
 
-  public addClient(newClient: Omit<Client, 'id' | 'firm_id' | 'active_cases' | 'case_count' | 'report_count' | 'created_at' | 'updated_at'>): Client {
-    const id = `client-${Date.now()}`;
+  public addClient(newClient: Omit<Client, 'id' | 'firm_id' | 'active_cases' | 'case_count' | 'report_count' | 'created_at' | 'updated_at'> & { id?: string }): Client {
+    const id = newClient.id || `client-${Date.now()}`;
     const created: Client = {
       ...newClient,
       id,
@@ -839,17 +849,30 @@ class Store {
     return this.data.clients[idx];
   }
 
+  public deleteClient(id: string): boolean {
+    const idx = this.data.clients.findIndex((c) => c.id === id);
+    if (idx === -1) return false;
+    this.data.clients.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
   // SESSIONS
   public getSessions(): CourtSession[] {
     return this.data.sessions;
+  }
+
+  public setSessions(sessions: CourtSession[]) {
+    this.data.sessions = sessions;
+    this.notify();
   }
 
   public getSessionsByCase(caseId: string): CourtSession[] {
     return this.data.sessions.filter((s) => s.case_id === caseId);
   }
 
-  public addSession(session: Omit<CourtSession, 'id' | 'created_at'>): CourtSession {
-    const id = `session-${Date.now()}`;
+  public addSession(session: Omit<CourtSession, 'id' | 'created_at'> & { id?: string }): CourtSession {
+    const id = session.id || `session-${Date.now()}`;
     const created: CourtSession = {
       ...session,
       id,
@@ -870,13 +893,37 @@ class Store {
     return created;
   }
 
+  public updateSession(id: string, updates: Partial<CourtSession>): CourtSession | null {
+    const idx = this.data.sessions.findIndex((s) => s.id === id);
+    if (idx === -1) return null;
+    this.data.sessions[idx] = {
+      ...this.data.sessions[idx],
+      ...updates,
+    };
+    this.notify();
+    return this.data.sessions[idx];
+  }
+
+  public deleteSession(id: string): boolean {
+    const idx = this.data.sessions.findIndex((s) => s.id === id);
+    if (idx === -1) return false;
+    this.data.sessions.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
   // DEADLINES
   public getDeadlines(): LegalDeadline[] {
     return this.data.deadlines;
   }
 
-  public addDeadline(deadline: Omit<LegalDeadline, 'id' | 'created_at'>): LegalDeadline {
-    const id = `dl-${Date.now()}`;
+  public setDeadlines(deadlines: LegalDeadline[]) {
+    this.data.deadlines = deadlines;
+    this.notify();
+  }
+
+  public addDeadline(deadline: Omit<LegalDeadline, 'id' | 'created_at'> & { id?: string }): LegalDeadline {
+    const id = deadline.id || `dl-${Date.now()}`;
     const created: LegalDeadline = {
       ...deadline,
       id,
@@ -894,13 +941,37 @@ class Store {
     return created;
   }
 
+  public updateDeadline(id: string, updates: Partial<LegalDeadline>): LegalDeadline | null {
+    const idx = this.data.deadlines.findIndex((d) => d.id === id);
+    if (idx === -1) return null;
+    this.data.deadlines[idx] = {
+      ...this.data.deadlines[idx],
+      ...updates,
+    };
+    this.notify();
+    return this.data.deadlines[idx];
+  }
+
+  public deleteDeadline(id: string): boolean {
+    const idx = this.data.deadlines.findIndex((d) => d.id === id);
+    if (idx === -1) return false;
+    this.data.deadlines.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
   // TASKS
   public getTasks(): Task[] {
     return this.data.tasks;
   }
 
-  public addTask(task: Omit<Task, 'id' | 'firm_id' | 'created_at' | 'updated_at'>): Task {
-    const id = `task-${Date.now()}`;
+  public setTasks(tasks: Task[]) {
+    this.data.tasks = tasks;
+    this.notify();
+  }
+
+  public addTask(task: Omit<Task, 'id' | 'firm_id' | 'created_at' | 'updated_at'> & { id?: string }): Task {
+    const id = task.id || `task-${Date.now()}`;
     const created: Task = {
       ...task,
       id,
@@ -925,17 +996,30 @@ class Store {
     return this.data.tasks[idx];
   }
 
+  public deleteTask(id: string): boolean {
+    const idx = this.data.tasks.findIndex((t) => t.id === id);
+    if (idx === -1) return false;
+    this.data.tasks.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
   // POLICE REPORTS
   public getPoliceReports(): PoliceReport[] {
     return this.data.policeReports;
+  }
+
+  public setPoliceReports(reports: PoliceReport[]) {
+    this.data.policeReports = reports;
+    this.notify();
   }
 
   public getPoliceReportById(id: string): PoliceReport | undefined {
     return this.data.policeReports.find((r) => r.id === id);
   }
 
-  public addPoliceReport(report: Omit<PoliceReport, 'id' | 'firm_id' | 'created_at' | 'updated_at'>): PoliceReport {
-    const id = `pr-${Date.now()}`;
+  public addPoliceReport(report: Omit<PoliceReport, 'id' | 'firm_id' | 'created_at' | 'updated_at'> & { id?: string }): PoliceReport {
+    const id = report.id || `pr-${Date.now()}`;
     const created: PoliceReport = {
       ...report,
       id,
@@ -960,12 +1044,25 @@ class Store {
     return this.data.policeReports[idx];
   }
 
+  public deletePoliceReport(id: string): boolean {
+    const idx = this.data.policeReports.findIndex((r) => r.id === id);
+    if (idx === -1) return false;
+    this.data.policeReports.splice(idx, 1);
+    this.notify();
+    return true;
+  }
+
   // POAS
   public getPoas(clientId?: string): PowerOfAttorney[] {
     if (clientId) {
       return this.data.poas.filter((p) => p.client_id === clientId);
     }
     return this.data.poas;
+  }
+
+  public setPoas(poas: PowerOfAttorney[]) {
+    this.data.poas = poas;
+    this.notify();
   }
 
   public addPoa(poa: Omit<PowerOfAttorney, 'id' | 'firm_id' | 'created_at'>): PowerOfAttorney {
@@ -979,6 +1076,14 @@ class Store {
     this.data.poas.unshift(created);
     this.notify();
     return created;
+  }
+
+  public deletePoa(id: string): boolean {
+    const idx = this.data.poas.findIndex((p) => p.id === id);
+    if (idx === -1) return false;
+    this.data.poas.splice(idx, 1);
+    this.notify();
+    return true;
   }
 
   // BILLING

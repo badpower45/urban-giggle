@@ -73,7 +73,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
   const getBorderClasses = () => {
     switch (settings.borderStyle) {
       case 'royal_double':
-        return 'border-[6px] border-double border-[#c5a059]/80 shadow-md';
+        return 'border-[6px] border-double border-blue-600/80 shadow-md';
       case 'court_formal':
         return 'border-[3px] border-solid border-primary/70 shadow-md';
       case 'classic_single':
@@ -95,9 +95,9 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
               variant="outline"
               size="sm"
               onClick={onOpenDesignModal}
-              className="text-xs font-bold h-8 px-2.5 gap-1.5 border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100"
+              className="text-xs font-bold h-8 px-2.5 gap-1.5 border-blue-300 text-blue-900 bg-blue-50 hover:bg-blue-100"
             >
-              <Palette className="w-3.5 h-3.5 text-amber-700" />
+              <Palette className="w-3.5 h-3.5 text-blue-700" />
               <span>المظهر واللوجو</span>
             </Button>
           )}
@@ -109,7 +109,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
               onClick={onToggleDirectEditing}
               className={`text-xs font-bold h-8 px-2.5 gap-1.5 transition-all ${
                 isDirectEditing
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
                   : 'bg-neutral hover:bg-neutral/80 text-primary border border-border'
               }`}
             >
@@ -120,7 +120,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
                 </>
               ) : (
                 <>
-                  <Edit3 className="w-3.5 h-3.5 text-amber-700" />
+                  <Edit3 className="w-3.5 h-3.5 text-blue-700" />
                   <span>تعديل مباشر على الورقة</span>
                 </>
               )}
@@ -221,7 +221,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
                 <h2 className="text-base sm:text-lg font-bold text-primary font-headline leading-tight">
                   {settings.firmName}
                 </h2>
-                <p className="text-xs font-semibold text-[#9E7B35]">
+                <p className="text-xs font-semibold text-blue-700">
                   {settings.lawyerTitle}
                 </p>
                 {settings.barNumber && (
@@ -257,7 +257,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
               suppressContentEditableWarning
               className={`contract-prose-content text-justify text-sm sm:text-base leading-8 transition-colors ${
                 isDirectEditing
-                  ? 'p-3 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50/20 focus:outline-none focus:ring-2 focus:ring-amber-400'
+                  ? 'p-3 rounded-lg border-2 border-dashed border-blue-400 bg-blue-50/20 focus:outline-none focus:ring-2 focus:ring-blue-400'
                   : ''
               }`}
               dangerouslySetInnerHTML={{ __html: interpolatedHtml }}
@@ -293,12 +293,12 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
                   </div>
 
                   {/* Stamp / Notary Seal Box */}
-                  <div className="flex flex-col items-center justify-center p-2 border border-dashed border-[#c5a059] rounded-lg bg-[#c5a059]/5">
-                    <span className="text-[10px] font-bold text-[#9E7B35]">
+                  <div className="flex flex-col items-center justify-center p-2 border border-dashed border-blue-500 rounded-lg bg-blue-50/20">
+                    <span className="text-[10px] font-bold text-blue-700">
                       خاتم وتوثيق المكتب القانوني
                     </span>
-                    <div className="w-12 h-12 rounded-full border border-dashed border-[#c5a059] mt-1 flex items-center justify-center opacity-40">
-                      <span className="text-[8px] font-bold text-[#9E7B35]">ختم رسمي</span>
+                    <div className="w-12 h-12 rounded-full border border-dashed border-blue-400 mt-1 flex items-center justify-center opacity-40">
+                      <span className="text-[8px] font-bold text-blue-700">ختم رسمي</span>
                     </div>
                   </div>
 
@@ -312,7 +312,7 @@ export const ContractPrintView: React.FC<ContractPrintViewProps> = ({
 
               {/* System Verification Tagline */}
               <div className="mt-8 text-center text-[10px] text-muted-foreground flex items-center justify-between border-t border-border/40 pt-2">
-                <span>حرر هذا العقد وتمت مراجعته وتوثيقه رسمياً عبر نظام سياق القانوني</span>
+                <span>حرر هذا العقد وتمت مراجعته وتوثيقه رسمياً عبر نظام بصيرة القانوني</span>
                 <span className="font-mono">صفحة ١ من ١</span>
               </div>
             </footer>

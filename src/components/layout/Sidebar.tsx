@@ -104,8 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <div className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden shrink-0 shadow-sm bg-neutral border border-border">
           <img
-            src="/logo.webp"
-            alt="logo"
+            src="/logo.svg"
+            alt="بصيرة"
             className="h-full w-full object-contain p-0.5"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <p className="font-headline text-primary text-sm font-bold truncate leading-tight">
-              {firm?.name || "سياق للمحاماة"}
+              {firm?.name || "بصيرة للمحاماة"}
             </p>
             <p className="text-tertiary text-[11px] truncate">نظام إدارة مكاتب المحاماة</p>
           </div>

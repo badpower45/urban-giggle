@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">بصيرة</string>
+    <string name="title_activity_main">بصيرة</string>
+    <string name="package_name">legal.baseera.app</string>
+    <string name="custom_url_scheme">legal.baseera.app</string>
+</resources>

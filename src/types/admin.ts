@@ -1,6 +1,6 @@
 /**
  * Super Admin & Platform Management - TypeScript Definitions
- * System: Central Administration Platform
+ * System: Central Administration Platform for Multi-Tenant Law Firm SaaS
  */
 
 export type LeadStatus = 'new' | 'contacted' | 'demo_scheduled' | 'converted' | 'archived';
@@ -10,6 +10,10 @@ export type TicketCategory = 'technical' | 'billing' | 'inquiry' | 'feature_requ
 export type TicketPriority = 'urgent' | 'high' | 'medium' | 'low';
 
 export type TicketStatus = 'new' | 'in_progress' | 'resolved' | 'closed';
+
+export type FirmSubscriptionStatus = 'active' | 'trial' | 'past_due' | 'suspended' | 'cancelled';
+
+export type FirmBillingCycle = 'monthly' | 'yearly';
 
 export interface PlatformSettings {
   systemName: string;
@@ -34,11 +38,62 @@ export interface AdminSubscriptionPlan {
   description: string;
   isPopular?: boolean;
   maxUsers: number;
-  storageGb: number;
+  maxStorageGb: number;
+  storageGb?: number;
   features: string[];
   isActive: boolean;
   badgeText?: string;
   badge?: string;
+}
+
+export interface TenantFirm {
+  id: string;
+  name: string;
+  slug: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  city: string;
+  address?: string;
+  subscriptionPlan: 'individual' | 'office' | 'enterprise';
+  subscriptionStatus: FirmSubscriptionStatus;
+  billingCycle: FirmBillingCycle;
+  trialEndsAt?: string;
+  subscriptionEndsAt?: string;
+  createdAt: string;
+  casesCount: number;
+  clientsCount: number;
+  usersCount: number;
+  storageUsedMb: number;
+  maxUsers: number;
+  maxStorageGb: number;
+  isVerified: boolean;
+  notes?: string;
+}
+
+export interface PlatformInvoice {
+  id: string;
+  invoiceNumber: string;
+  firmId: string;
+  firmName: string;
+  planName: string;
+  amount: number;
+  currency: string;
+  billingCycle: FirmBillingCycle;
+  paymentMethod: 'credit_card' | 'instapay' | 'bank_transfer' | 'fawry' | 'vodafone_cash';
+  status: 'paid' | 'pending' | 'failed' | 'refunded';
+  paidAt?: string;
+  createdAt: string;
+  receiptUrl?: string;
+}
+
+export interface SuperAdminUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'super_admin' | 'platform_support' | 'finance_manager';
+  avatarUrl?: string;
+  lastLoginAt?: string;
 }
 
 export interface ContactRequest {
@@ -78,5 +133,10 @@ export interface PlatformOverviewStats {
   openTicketsCount: number;
   urgentTicketsCount: number;
   totalSubscribedFirms: number;
+  activeFirmsCount: number;
+  trialFirmsCount: number;
+  totalUsersCount: number;
+  totalCasesCount: number;
   monthlyRevenueEstimate: number;
+  annualRunRate: number;
 }

@@ -33,14 +33,14 @@ export const VariableChipView: React.FC<NodeViewProps> = ({
         title={`خانة متغيرة تُملأ عند تجهيز العقد: ${displayLabel}`}
         className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150 cursor-pointer shadow-2xs border ${
           selected
-            ? 'bg-amber-500 text-white border-amber-600 ring-2 ring-amber-300 shadow-sm'
-            : 'bg-amber-50 text-amber-900 border-amber-300/80 hover:bg-amber-100 hover:border-amber-400'
+            ? 'bg-blue-600 text-white border-blue-700 ring-2 ring-blue-300 shadow-sm'
+            : 'bg-blue-50 text-blue-900 border-blue-200/90 hover:bg-blue-100/80 hover:border-blue-300'
         }`}
       >
         {/* Friendly Pen / Fill-in icon */}
         <span
           className={`flex items-center justify-center w-4 h-4 rounded text-[10px] ${
-            selected ? 'bg-white/20 text-white' : 'bg-amber-200/80 text-amber-800'
+            selected ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
           }`}
         >
           <PenTool className="w-2.5 h-2.5" />
@@ -62,7 +62,7 @@ export const VariableChipView: React.FC<NodeViewProps> = ({
           className={`rounded p-0.5 transition-colors ${
             selected
               ? 'hover:bg-white/30 text-white'
-              : 'hover:bg-amber-200 text-amber-700 opacity-60 group-hover:opacity-100'
+              : 'hover:bg-blue-200/70 text-blue-700 opacity-60 group-hover:opacity-100'
           }`}
         >
           <X className="w-3 h-3" />

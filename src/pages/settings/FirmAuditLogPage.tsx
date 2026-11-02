@@ -127,16 +127,16 @@ export const FirmAuditLogPage: React.FC = () => {
             to="/firm/settings/subscription"
             className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors shadow-2xs"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
             <span>باقة الشركات المتقدمة</span>
           </Link>
         </div>
       </div>
 
       {/* Enterprise Audit Guarantee Card */}
-      <div className="rounded-xl border border-[#C5A059]/30 bg-gradient-to-l from-white via-white to-[#C5A059]/5 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+      <div className="rounded-xl border border-blue-500/30 bg-gradient-to-l from-white via-white to-blue-500/5 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center shrink-0 text-[#9E7B35]">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0 text-blue-600">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
@@ -148,7 +148,7 @@ export const FirmAuditLogPage: React.FC = () => {
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#9E7B35] bg-[#C5A059]/10 px-3 py-1 rounded-md shrink-0 self-start sm:self-auto">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-md shrink-0 self-start sm:self-auto">
           مفعل ومراقب
         </span>
       </div>

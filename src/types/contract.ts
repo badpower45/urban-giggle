@@ -1,6 +1,6 @@
 /**
  * Contract Builder & Legal Templates System - TypeScript Definitions
- * System: Siyaq Legal OS
+ * System: Baseera Legal OS
  */
 
 export type VariableDataType = 'text' | 'date' | 'number' | 'currency' | 'textarea';
@@ -14,6 +14,7 @@ export type ContractLogoPreset =
   | 'shield_navy'
   | 'notary_seal'
   | 'court_pillars'
+  | 'baseera_default'
   | 'siyaq_default'
   | 'custom';
 
