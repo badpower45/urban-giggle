@@ -32,6 +32,7 @@ import {
   Send,
   Database,
   Search,
+  Menu,
 } from 'lucide-react';
 import {
   DashboardMockup,
@@ -162,6 +163,7 @@ export const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [activePreviewTab, setActivePreviewTab] = useState<'dashboard' | 'sessions' | 'cases'>('dashboard');
   const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(1);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Interactive Calculator State
   const [selectedRuleId, setSelectedRuleId] = useState<string>(EGYPTIAN_APPEAL_RULES[0].id);
@@ -314,41 +316,36 @@ ${deadlineInfo.isWeekendExtended ? '⚠️ تنبيه إجرائي: صادف ا�
       </div>
 
       {/* =========================================================================
-          FLOATING SLICK HEADER
+          FLOATING SLICK HEADER (MODERN & PROFESSIONAL)
          ========================================================================= */}
       <header className="fixed top-0 inset-x-0 z-50 px-4 sm:px-6 py-3 transition-all">
-        <div className="max-w-7xl mx-auto rounded-2xl bg-slate-900/85 backdrop-blur-md border border-slate-800 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-2xl shadow-black/40">
+        <div className="max-w-7xl mx-auto rounded-2xl bg-slate-900/90 backdrop-blur-md border border-slate-800/80 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xl shadow-black/40">
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
               ⚖️
             </div>
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-lg text-white font-headline tracking-wide">
-                  {settings.systemName}
-                </span>
-                <span className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-full">
-                  SaaS 3.0
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 hidden sm:block">
-                المنظومة السحابية للمحاكم والمحامين
+              <span className="font-black text-lg text-white font-headline tracking-wide leading-tight">
+                {settings.systemName}
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium hidden sm:block">
+                منظومة المحاماة الرقمية السحابية
               </span>
             </div>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links (Desktop) */}
           <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-slate-300">
             <a href="#features" className="hover:text-amber-400 transition-colors">
-              المميزات والمنظومة
+              المميزات والحلول
             </a>
-            <a href="#calculator" className="hover:text-amber-400 transition-colors flex items-center gap-1 text-amber-300 font-bold">
+            <a href="#calculator" className="hover:text-amber-400 transition-colors flex items-center gap-1.5 text-amber-300 font-bold">
               <Scale className="w-3.5 h-3.5 text-amber-400" />
               <span>حاسبة الطعون القضائية</span>
             </a>
             <a href="#courtroom" className="hover:text-amber-400 transition-colors">
-              وضع المحكمة أوفلاين
+              العمل بدون إنترنت (أوفلاين)
             </a>
             <a href="#pricing" className="hover:text-amber-400 transition-colors">
               باقات الاشتراك
@@ -357,38 +354,106 @@ ${deadlineInfo.isWeekendExtended ? '⚠️ تنبيه إجرائي: صادف ا�
               الأسئلة الشائعة
             </a>
             <a href="#contact" className="hover:text-amber-400 transition-colors">
-              طلب ديمو
+              طلب استشارة وتواصل
             </a>
           </nav>
 
-          {/* Action CTAs (Dual Logins + Free Trial) */}
+          {/* Action CTAs (Clean, unified & Professional) */}
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              to="/admin/login"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-amber-400/90 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all hover:scale-105 active:scale-95"
-              title="بوابة دخول الإدارة المركزية للمنصة"
-            >
-              <Lock className="w-3 h-3" />
-              <span className="hidden sm:inline">دخول الإدارة</span>
-            </Link>
-
-            <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 transition-all hover:scale-105 active:scale-95 shadow-sm"
             >
-              <Building2 className="w-3.5 h-3.5 text-blue-400" />
-              <span>دخول المكاتب</span>
+              <span>تسجيل الدخول</span>
             </Link>
 
             <Link
               to="/register"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 hover:brightness-110 shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
             >
-              <span>ابدأ مجاناً</span>
+              <span>ابدأ تجربتك المجانية</span>
               <ArrowRight className="w-3.5 h-3.5 rotate-180" />
             </Link>
+
+            {/* Mobile Hamburger Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700 focus:outline-none"
+              aria-label="القائمة"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden max-w-7xl mx-auto mt-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-800 p-5 shadow-2xl animate-in slide-in-from-top-3 duration-200">
+            <div className="flex flex-col gap-3.5 text-sm font-semibold text-slate-300">
+              <a
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 transition-colors"
+              >
+                المميزات والحلول
+              </a>
+              <a
+                href="#calculator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 text-amber-300 flex items-center gap-2"
+              >
+                <Scale className="w-4 h-4 text-amber-400" />
+                <span>حاسبة الطعون القضائية</span>
+              </a>
+              <a
+                href="#courtroom"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 transition-colors"
+              >
+                العمل بدون إنترنت (أوفلاين)
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 transition-colors"
+              >
+                باقات الاشتراك
+              </a>
+              <a
+                href="#faq"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 transition-colors"
+              >
+                الأسئلة الشائعة
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 hover:bg-slate-800/60 rounded-xl hover:text-amber-400 transition-colors"
+              >
+                طلب استشارة وتواصل
+              </a>
+
+              <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 border border-slate-700"
+                >
+                  تسجيل الدخول الموحد
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950"
+                >
+                  ابدأ تجربتك المجانية ١٤ يوماً
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
@@ -401,8 +466,8 @@ ${deadlineInfo.isWeekendExtended ? '⚠️ تنبيه إجرائي: صادف ا�
             {/* Right Column: Hero Headline & Actions */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-start animate-in fade-in slide-in-from-bottom-5 duration-700">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-500/30 text-amber-300 text-xs font-semibold shadow-inner">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span>المنظومة السحابية المعتمدة للمحاكم المصرية • الإصدار 3.0</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>المنظومة السحابية المعتمدة لمكاتب وشركات المحاماة في مصر</span>
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white font-headline leading-[1.2] tracking-tight">

@@ -432,14 +432,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               تقديم شكوى أو استفسار
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigate("/super-admin")}
-              className="bg-amber-50/60 text-primary font-bold hover:bg-amber-100/80 focus:bg-amber-100"
-            >
-              <ShieldCheck className="w-4 h-4 ml-2 text-amber-600" />
-              لوحة الإدارة العليا (Super Admin)
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/login")} className="text-destructive focus:text-destructive">
               <LogOut className="w-4 h-4 ml-2" />
               تسجيل الخروج

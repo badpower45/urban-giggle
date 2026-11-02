@@ -78,7 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { to: "/firm/settings/subscription", label: "الاشتراك", icon: CreditCard },
         { to: "/firm/settings/audit-log", label: "سجل التدقيق", icon: FileText },
         { to: "/profile", label: "الملف الشخصي", icon: User },
-        { to: "/super-admin", label: "الإدارة العليا (Admin)", icon: ShieldCheck, badge: "Master" },
       ],
     },
   ];

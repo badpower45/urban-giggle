@@ -38,7 +38,12 @@ import {
   Check,
   X,
   Filter,
+  Eye,
+  EyeOff,
+  Key,
+  Copy,
 } from 'lucide-react';
+import { supabaseService } from '../../lib/supabase/client';
 import { usePlatformStore } from '../../lib/platformStore';
 import {
   LeadStatus,
@@ -102,6 +107,15 @@ export const SuperAdminDashboardPage: React.FC = () => {
   const [newFirmName, setNewFirmName] = useState('');
   const [newFirmOwner, setNewFirmOwner] = useState('');
   const [newFirmEmail, setNewFirmEmail] = useState('');
+  const [newFirmPassword, setNewFirmPassword] = useState('Lawyer@2026');
+  const [showNewFirmPassword, setShowNewFirmPassword] = useState(false);
+  const [isCreatingFirm, setIsCreatingFirm] = useState(false);
+  const [createdFirmCreds, setCreatedFirmCreds] = useState<{
+    name: string;
+    owner: string;
+    email: string;
+    password: string;
+  } | null>(null);
   const [newFirmPhone, setNewFirmPhone] = useState('');
   const [newFirmCity, setNewFirmCity] = useState('القاهرة');
   const [newFirmAddress, setNewFirmAddress] = useState('');
@@ -189,57 +203,102 @@ export const SuperAdminDashboardPage: React.FC = () => {
     return matchesQuery && matchesStatus && matchesCategory;
   });
 
-  // Add New Firm Handler
-  const handleCreateFirm = (e: React.FormEvent) => {
+  // Add New Firm Handler with Email and Password
+  const handleCreateFirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFirmName.trim() || !newFirmOwner.trim() || !newFirmEmail.trim()) {
-      showToast('يرجى ملء اسم المكتب واسم المالك والبريد الإلكتروني.', 'error');
+    if (!newFirmName.trim() || !newFirmOwner.trim() || !newFirmEmail.trim() || !newFirmPassword.trim()) {
+      showToast('يرجى ملء اسم المكتب واسم المالك والبريد الإلكتروني وكلمة المرور.', 'error');
       return;
     }
 
-    const quotas = {
-      individual: { maxUsers: 2, maxStorageGb: 5 },
-      office: { maxUsers: 10, maxStorageGb: 50 },
-      enterprise: { maxUsers: 30, maxStorageGb: 150 },
-    }[newFirmPlan];
+    if (newFirmPassword.trim().length < 6) {
+      showToast('كلمة المرور يجب أن لا تقل عن 6 أحرف.', 'error');
+      return;
+    }
 
-    const slug = newFirmName
-      .toLowerCase()
-      .replace(/[^a-z0-9\u0621-\u064A]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') || `firm-${Date.now()}`;
+    setIsCreatingFirm(true);
 
-    addFirm({
-      name: newFirmName.trim(),
-      slug,
-      ownerName: newFirmOwner.trim(),
-      ownerEmail: newFirmEmail.trim(),
-      ownerPhone: newFirmPhone.trim() || '01000000000',
-      city: newFirmCity,
-      address: newFirmAddress.trim() || 'جمهورية مصر العربية',
-      subscriptionPlan: newFirmPlan,
-      subscriptionStatus: newFirmStatus,
-      billingCycle: newFirmCycle,
-      trialEndsAt:
-        newFirmStatus === 'trial'
-          ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-          : undefined,
-      subscriptionEndsAt:
-        newFirmStatus === 'active'
-          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-          : undefined,
-      maxUsers: quotas.maxUsers,
-      maxStorageGb: quotas.maxStorageGb,
-      isVerified: true,
-      notes: 'تم التسجيل يدوياً بواسطة الإدارة المركزية للمنصة.',
-    });
+    const email = newFirmEmail.trim().toLowerCase();
+    const password = newFirmPassword.trim();
+    const owner = newFirmOwner.trim();
+    const firmName = newFirmName.trim();
 
-    setShowAddFirmModal(false);
-    setNewFirmName('');
-    setNewFirmOwner('');
-    setNewFirmEmail('');
-    setNewFirmPhone('');
-    showToast(`تم قيد مكتب "${newFirmName}" بنجاح في قاعدة بيانات مكاتب المنصة`, 'success');
+    try {
+      // 1. Supabase Cloud Sign-Up if configured
+      if (supabaseService.isConfigured()) {
+        try {
+          const { error } = await supabaseService.signUp(email, password, {
+            full_name: owner,
+            firm_name: firmName,
+          });
+          if (error) {
+            console.warn('[handleCreateFirm] Supabase signUp notice:', error.message);
+          }
+        } catch (err: any) {
+          console.warn('[handleCreateFirm] Supabase auth notice:', err);
+        }
+      }
+
+      const quotas = {
+        individual: { maxUsers: 2, maxStorageGb: 5 },
+        office: { maxUsers: 10, maxStorageGb: 50 },
+        enterprise: { maxUsers: 30, maxStorageGb: 150 },
+      }[newFirmPlan];
+
+      const slug =
+        firmName
+          .toLowerCase()
+          .replace(/[^a-z0-9\u0621-\u064A]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || `firm-${Date.now()}`;
+
+      addFirm({
+        name: firmName,
+        slug,
+        ownerName: owner,
+        ownerEmail: email,
+        ownerPhone: newFirmPhone.trim() || '01000000000',
+        city: newFirmCity,
+        address: newFirmAddress.trim() || 'جمهورية مصر العربية',
+        subscriptionPlan: newFirmPlan,
+        subscriptionStatus: newFirmStatus,
+        billingCycle: newFirmCycle,
+        trialEndsAt:
+          newFirmStatus === 'trial'
+            ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+            : undefined,
+        subscriptionEndsAt:
+          newFirmStatus === 'active'
+            ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+            : undefined,
+        maxUsers: quotas.maxUsers,
+        maxStorageGb: quotas.maxStorageGb,
+        isVerified: true,
+        notes: `المالك: ${owner} | كلمة المرور الابتدائية: ${password}`,
+        initialPassword: password,
+      });
+
+      setShowAddFirmModal(false);
+      setCreatedFirmCreds({
+        name: firmName,
+        owner,
+        email,
+        password,
+      });
+
+      showToast(`تم قيد مكتب "${firmName}" وإنشاء حساب الدخول بنجاح!`, 'success');
+
+      // Reset form
+      setNewFirmName('');
+      setNewFirmOwner('');
+      setNewFirmEmail('');
+      setNewFirmPhone('');
+      setNewFirmPassword('Lawyer@2026');
+    } catch (err: any) {
+      showToast(`حدث خطأ أثناء قيد المكتب: ${err.message || ''}`, 'error');
+    } finally {
+      setIsCreatingFirm(false);
+    }
   };
 
   // Convert Lead To Firm
@@ -962,6 +1021,21 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
                               <button
                                 type="button"
+                                onClick={() => {
+                                  const pass = firm.initialPassword || 'Lawyer@2026';
+                                  const text = `⚖️ بيانات حساب مكتب ${firm.name}:\n• رابط الدخول: ${window.location.origin}/login\n• البريد الإلكتروني: ${firm.ownerEmail}\n• كلمة المرور: ${pass}`;
+                                  navigator.clipboard.writeText(text);
+                                  showToast(`تم نسخ بيانات دخول مكتب "${firm.name}" بنجاح!`, 'success');
+                                }}
+                                className="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-[10px] font-bold transition-all flex items-center gap-1 shadow-sm"
+                                title="نسخ بيانات الدخول للمحامي"
+                              >
+                                <Key className="w-3 h-3 text-amber-400" />
+                                <span>بيانات الدخول</span>
+                              </button>
+
+                              <button
+                                type="button"
                                 onClick={() => setSelectedFirm(firm)}
                                 className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[10px] font-bold transition-all"
                               >
@@ -1563,7 +1637,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-slate-300">البريد الإلكتروني للإدارة *</Label>
+                  <Label className="text-xs text-slate-300">البريد الإلكتروني لتسجيل الدخول *</Label>
                   <Input
                     type="email"
                     value={newFirmEmail}
@@ -1574,6 +1648,39 @@ export const SuperAdminDashboardPage: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-slate-300">كلمة مرور الحساب *</Label>
+                    <button
+                      type="button"
+                      onClick={() => setNewFirmPassword(`Lawyer@${Math.floor(1000 + Math.random() * 9000)}`)}
+                      className="text-[10px] text-amber-400 hover:underline"
+                    >
+                      توليد كلمة مرور
+                    </button>
+                  </div>
+                  <div className="relative mt-1">
+                    <Input
+                      type={showNewFirmPassword ? "text" : "password"}
+                      value={newFirmPassword}
+                      onChange={(e) => setNewFirmPassword(e.target.value)}
+                      placeholder="كلمة مرور الدخول"
+                      required
+                      minLength={6}
+                      className="h-10 pe-9 bg-slate-950 border-slate-800 text-xs rounded-xl font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewFirmPassword(!showNewFirmPassword)}
+                      className="absolute end-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    >
+                      {showNewFirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <Label className="text-xs text-slate-300">المحافظة / المدينة</Label>
                   <Input
                     type="text"
@@ -1583,9 +1690,6 @@ export const SuperAdminDashboardPage: React.FC = () => {
                     className="h-10 mt-1 bg-slate-950 border-slate-800 text-xs rounded-xl"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-slate-300">باقة الاشتراك</Label>
                   <select
@@ -1598,6 +1702,9 @@ export const SuperAdminDashboardPage: React.FC = () => {
                     <option value="enterprise">باقة المكاتب الكبرى</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-slate-300">حالة الحساب</Label>
                   <select
@@ -1610,6 +1717,27 @@ export const SuperAdminDashboardPage: React.FC = () => {
                     <option value="suspended">معلق</option>
                   </select>
                 </div>
+                <div>
+                  <Label className="text-xs text-slate-300">دورة الفوترة</Label>
+                  <select
+                    value={newFirmCycle}
+                    onChange={(e) => setNewFirmCycle(e.target.value as any)}
+                    className="h-10 w-full mt-1 px-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200"
+                  >
+                    <option value="yearly">سداد سنوي</option>
+                    <option value="monthly">سداد شهري</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>تأكيد التسجيل المباشر</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  سيتم إنشاء حساب مكتب المحاماة فوراً، وتخصيص صلاحيات الإدارة للمحامي بالبريد وكلمة المرور المحددة لتمكينه من تسجيل الدخول مباشرة من صفحة الدخول الموحدة.
+                </p>
               </div>
 
               <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
@@ -1617,18 +1745,97 @@ export const SuperAdminDashboardPage: React.FC = () => {
                   type="button"
                   variant="outline"
                   onClick={() => setShowAddFirmModal(false)}
+                  disabled={isCreatingFirm}
                   className="h-10 text-xs bg-slate-800 border-slate-700 text-slate-300 rounded-xl"
                 >
                   إلغاء
                 </Button>
                 <Button
                   type="submit"
-                  className="h-10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl px-5"
+                  disabled={isCreatingFirm}
+                  className="h-10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl px-5 gap-2"
                 >
-                  قيد وتفعيل المكتب الآن
+                  {isCreatingFirm ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>جاري القيد والتشفير...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>قيد وتفعيل المكتب الآن</span>
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* MODAL: CREATED FIRM CREDENTIALS CARD */}
+      {/* =================================================================== */}
+      {createdFirmCreds && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                <BadgeCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">تم إنشاء حساب المكتب بنجاح!</h3>
+                <p className="text-xs text-slate-400">يمكن للمحامي الآن تسجيل الدخول مباشرة من صفحة الدخول الموحدة</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">اسم المكتب:</span>
+                <span className="text-white font-bold">{createdFirmCreds.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">المحامي المسؤول:</span>
+                <span className="text-slate-200">{createdFirmCreds.owner}</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                <span className="text-slate-400">البريد الإلكتروني:</span>
+                <span className="text-amber-300 font-mono font-semibold select-all">{createdFirmCreds.email}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">كلمة المرور:</span>
+                <span className="text-amber-300 font-mono font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800 select-all">
+                  {createdFirmCreds.password}
+                </span>
+              </div>
+              <div className="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                <span className="text-slate-400">رابط الدخول الموحد:</span>
+                <span className="text-blue-400 font-mono text-[11px]">{window.location.origin}/login</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  const shareText = `⚖️ بيانات حساب مكتبك في منصة بصيرة للمحاماة:\n\n• اسم المكتب: ${createdFirmCreds.name}\n• المحامي المسؤول: ${createdFirmCreds.owner}\n• رابط الدخول: ${window.location.origin}/login\n• البريد الإلكتروني: ${createdFirmCreds.email}\n• كلمة المرور: ${createdFirmCreds.password}\n\nنتمنى لك عملاً موفقاً!`;
+                  navigator.clipboard.writeText(shareText);
+                  showToast('تم نسخ بيانات الدخول إلى الحافظة بنجاح!', 'success');
+                }}
+                className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl gap-2 shadow-lg shadow-amber-500/20"
+              >
+                <Copy className="w-4 h-4" />
+                <span>نسخ بيانات الدخول للمحامي</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCreatedFirmCreds(null)}
+                className="h-10 text-xs bg-slate-800 border-slate-700 text-slate-300 hover:text-white rounded-xl px-4"
+              >
+                إغلاق
+              </Button>
+            </div>
           </div>
         </div>
       )}

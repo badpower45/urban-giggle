@@ -69,6 +69,7 @@ export interface TenantFirm {
   maxStorageGb: number;
   isVerified: boolean;
   notes?: string;
+  initialPassword?: string;
 }
 
 export interface PlatformInvoice {

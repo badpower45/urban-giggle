@@ -18,3 +18,4 @@ FOR EACH ROW EXECUTE FUNCTION public.auto_confirm_user_email();
 UPDATE auth.users
 SET email_confirmed_at = NOW()
 WHERE email_confirmed_at IS NULL;
+
