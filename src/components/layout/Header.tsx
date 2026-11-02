@@ -78,78 +78,33 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-white/95 px-3 sm:px-6 backdrop-blur-md shadow-2xs">
-        {/* Right Side: Mobile Menu, Firm Badge & Cloud Status */}
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-white/95 px-4 sm:px-6 backdrop-blur-md shadow-2xs">
+        {/* Right Side: Mobile Menu Toggle & Global Search Bar */}
+        <div className="flex items-center gap-3 flex-1 max-w-xl">
           <button
             onClick={onOpenMobileMenu}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-slate-600 hover:bg-slate-100 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-slate-600 hover:bg-slate-100 md:hidden shrink-0"
             aria-label="القائمة"
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-border">
-            <Building2 className="w-4 h-4 text-secondary shrink-0" />
-            <span className="text-xs font-semibold text-primary truncate max-w-[180px] lg:max-w-[280px]">
-              {firm.name}
-            </span>
+          {/* Clean Global Search Bar */}
+          <div className="flex-1 hidden md:block max-w-md">
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="w-full flex items-center justify-between h-9 px-3 text-xs rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 text-muted-foreground transition-all cursor-pointer shadow-2xs"
+            >
+              <span className="flex items-center gap-2 truncate">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="truncate">بحث سريع في القضايا، الموكلين، والرول...</span>
+              </span>
+              <kbd className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-bold bg-white border border-slate-200 rounded text-slate-500 shadow-2xs">
+                Ctrl+K
+              </kbd>
+            </button>
           </div>
-
-          {/* Cloud Database Live Badge */}
-          <Link
-            to="/firm/settings"
-            className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all hover:opacity-90"
-            title="حالة الاتصال بقاعدة البيانات"
-          >
-            {supabaseService.isConfigured() ? (
-              <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>سحابة متصلة</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-amber-800 bg-amber-50 border-amber-200">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                <span>وضع محلي</span>
-              </span>
-            )}
-          </Link>
-
-          <Link
-            to="/"
-            className="hidden xl:flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-primary px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
-            title="الانتقال إلى الموقع التعريفي"
-          >
-            <Globe className="w-3.5 h-3.5 text-secondary" />
-            <span>الموقع التعريفي</span>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => openBaseeraTour()}
-            className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 px-2.5 py-1.5 rounded-lg transition-all shadow-xs"
-            title="بدء الجولة التفاعلية للتعرف على النظام"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>جولة في النظام</span>
-          </button>
-        </div>
-
-        {/* Center Search Input (Triggers Global Command Palette) */}
-        <div className="flex-1 max-w-md mx-4 hidden md:block">
-          <button
-            type="button"
-            onClick={() => setIsSearchOpen(true)}
-            className="w-full flex items-center justify-between h-9 px-3 text-xs rounded-xl border border-border bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 text-muted-foreground transition-all cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <span>بحث سريع في القضايا، الموكلين، والرول...</span>
-            </span>
-            <kbd className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono font-bold bg-white border border-border rounded text-slate-500 shadow-2xs">
-              Ctrl+K
-            </kbd>
-          </button>
         </div>
 
         {/* Left Side: Actions, Notifications, Profile */}
@@ -381,27 +336,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Submit Complaint or Support Ticket */}
-        <button
-          type="button"
-          onClick={() => setIsComplaintModalOpen(true)}
-          className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-blue-200 bg-blue-50/70 text-blue-900 hover:bg-blue-100 text-xs font-semibold transition-colors"
-          title="تقديم شكوى أو استفسار للإدارة العليا"
-        >
-          <LifeBuoy className="w-3.5 h-3.5 text-blue-700" />
-          <span className="hidden xl:inline">الدعم والشكاوى</span>
-        </button>
-
-        {/* User Profile Menu */}
+        {/* User Profile Menu (Clean & Uncluttered) */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-xl p-1 hover:bg-slate-100 transition-colors focus:outline-none">
               <img
                 src={user.avatar_url}
                 alt={user.full_name}
-                className="h-8 w-8 rounded-lg object-cover border border-border"
+                className="h-8 w-8 rounded-lg object-cover border border-border shadow-2xs"
               />
-              <div className="hidden text-start lg:block">
+              <div className="hidden text-start md:block">
                 <span className="block text-xs font-bold text-foreground leading-tight">
                   {user.full_name}
                 </span>
@@ -411,7 +355,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               </div>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 shadow-xl border-border">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-xs font-bold leading-none text-foreground">{user.full_name}</p>
@@ -427,9 +371,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               <Settings className="w-4 h-4 ml-2" />
               إعدادات المكتب
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openBaseeraTour()}>
+              <Sparkles className="w-4 h-4 ml-2 text-amber-500" />
+              بدء الجولة التعريفية بالنظام
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setIsComplaintModalOpen(true)}>
-              <LifeBuoy className="w-4 h-4 ml-2 text-amber-600" />
-              تقديم شكوى أو استفسار
+              <LifeBuoy className="w-4 h-4 ml-2 text-blue-600" />
+              الدعم الفني والشكاوى
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/")}>
+              <Globe className="w-4 h-4 ml-2 text-slate-500" />
+              زيارة الموقع العام
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/login")} className="text-destructive focus:text-destructive">
