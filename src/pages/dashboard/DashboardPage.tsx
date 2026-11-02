@@ -140,17 +140,10 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => openBaseeraTour()}
-              className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>بدء الجولة التعريفية</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/firm/clients/new')}
-              className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-white border border-border text-primary hover:bg-slate-50 font-semibold text-xs shadow-xs transition-colors"
-            >
-              إضافة موكل الآن
+              <span>بدء الجولة التعريفية في النظام</span>
             </button>
           </div>
         </div>

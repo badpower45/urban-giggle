@@ -340,17 +340,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-xl p-1 hover:bg-slate-100 transition-colors focus:outline-none">
-              <img
-                src={user.avatar_url}
-                alt={user.full_name}
-                className="h-8 w-8 rounded-lg object-cover border border-border shadow-2xs"
-              />
+              <div className="h-8 w-8 rounded-lg bg-primary text-white text-xs font-bold flex items-center justify-center overflow-hidden border border-border shadow-2xs shrink-0">
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.full_name || ""}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  user?.full_name?.charAt(0).toUpperCase() || "م"
+                )}
+              </div>
               <div className="hidden text-start md:block">
                 <span className="block text-xs font-bold text-foreground leading-tight">
-                  {user.full_name}
+                  {user?.full_name || "المستشار القانوني"}
                 </span>
                 <span className="block text-[10px] text-muted-foreground">
-                  مدير ومحامي أساسي
+                  {user?.role === "owner" ? "مالك المكتب ومحامٍ أساسي" : "محامٍ ممارس"}
                 </span>
               </div>
             </button>

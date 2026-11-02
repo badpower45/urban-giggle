@@ -24,6 +24,9 @@ import {
   EGYPT_GOVERNORATES,
 } from "../../lib/utils";
 import { CaseStatus, ClientRole } from "../../types";
+import { canPerformAction } from "../../lib/api/quotas";
+import { logAuditEvent } from "../../lib/api/audit";
+import { useToast } from "../../components/common/Toast";
 
 const caseSchema = z.object({
   client_id: z.string().min(1, "يرجى اختيار الموكل"),
@@ -53,6 +56,7 @@ export const CaseFormPage: React.FC = () => {
   const navigate = useNavigate();
   const isEditing = Boolean(id);
   const { isOnline, createCaseOffline } = useOffline();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(isEditing);
   const [submitting, setSubmitting] = useState(false);
@@ -124,6 +128,16 @@ export const CaseFormPage: React.FC = () => {
   const onSubmit = async (formData: CaseFormData) => {
     setSubmitting(true);
     try {
+      // Quota check when creating a new case
+      if (!isEditing) {
+        const check = canPerformAction('create_case');
+        if (!check.allowed) {
+          showToast(check.reason || 'تم الوصول للحد الأقصى المسموح به في باقة الاشتراك.', 'error');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       if (!isOnline) {
         // Offline Mode: Save directly to local SQLite database, enqueue mutation, trigger Toast
         await createCaseOffline({
@@ -137,6 +151,13 @@ export const CaseFormPage: React.FC = () => {
           fees: formData.total_fees,
           paid_amount: formData.total_paid,
         });
+
+        logAuditEvent({
+          action_type: isEditing ? 'تعديل قضية' : 'إنشاء قضية',
+          description: `${isEditing ? 'تعديل بيانات القضية' : 'قيد قضية جديدة'}: "${formData.title}" (رقم ${formData.case_number}) للموكل ${formData.client_name}`,
+          status: 'success',
+        });
+
         navigate("/firm/cases");
         return;
       }
@@ -168,6 +189,13 @@ export const CaseFormPage: React.FC = () => {
           synced: 1,
         });
       }
+
+      logAuditEvent({
+        action_type: isEditing ? 'تعديل قضية' : 'إنشاء قضية',
+        description: `${isEditing ? 'تعديل بيانات القضية' : 'قيد قضية جديدة'}: "${formData.title}" (رقم ${formData.case_number} لسنة ${formData.case_year}) للموكل ${formData.client_name}`,
+        status: 'success',
+      });
+
       navigate("/firm/cases");
     } catch (err) {
       console.warn("[CaseFormPage] Online save failed, persisting offline:", err);

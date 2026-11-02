@@ -26,7 +26,20 @@ import {
   ExternalLink,
   Info,
   Check,
+  Image as ImageIcon,
+  Upload,
+  Trash2,
+  Eye,
+  Search,
+  ChevronRight,
+  ChevronLeft,
+  Download,
+  ZoomIn,
+  X,
 } from "lucide-react";
+import { logAuditEvent } from "../../lib/api/audit";
+import { canPerformAction } from "../../lib/api/quotas";
+import { useToast } from "../../components/common/Toast";
 import { apiClient } from "../../lib/api/client";
 import { appStore } from "../../lib/api/store";
 import { Case, CourtSession, LegalDeadline, Task, PoliceReport } from "../../types";
@@ -146,10 +159,168 @@ export const CaseDetailPage: React.FC = () => {
   const [expenseAmount, setExpenseAmount] = useState(500);
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
 
+  // 6. Documents & Multi-Page Papers State
+  const { showToast } = useToast();
+  const [caseDocuments, setCaseDocuments] = useState<Array<{
+    id: string;
+    case_id: string;
+    title: string;
+    category: string;
+    notes?: string;
+    created_at: string;
+    images: Array<{ id: string; name: string; url: string; size?: number }>;
+  }>>([]);
+  const [docSearch, setDocSearch] = useState("");
+  const [docCategoryFilter, setDocCategoryFilter] = useState("all");
+
+  const [isAddDocOpen, setIsAddDocOpen] = useState(false);
+  const [newDocTitle, setNewDocTitle] = useState("");
+  const [newDocCategory, setNewDocCategory] = useState("حافظة مستندات");
+  const [newDocNotes, setNewDocNotes] = useState("");
+  const [newDocImages, setNewDocImages] = useState<Array<{ id: string; name: string; url: string; size?: number }>>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+
+  const [activeViewingDoc, setActiveViewingDoc] = useState<{
+    id: string;
+    case_id: string;
+    title: string;
+    category: string;
+    notes?: string;
+    created_at: string;
+    images: Array<{ id: string; name: string; url: string; size?: number }>;
+  } | null>(null);
+  const [viewingImageIdx, setViewingImageIdx] = useState(0);
+
+  const loadCaseDocuments = () => {
+    if (!id) return;
+    try {
+      const raw = localStorage.getItem(`baseera_case_docs_${id}`);
+      if (raw) {
+        setCaseDocuments(JSON.parse(raw));
+      } else {
+        setCaseDocuments([]);
+      }
+    } catch (err) {
+      console.warn('[loadCaseDocuments] error:', err);
+    }
+  };
+
+  const saveCaseDocuments = (docs: typeof caseDocuments) => {
+    if (!id) return;
+    try {
+      localStorage.setItem(`baseera_case_docs_${id}`, JSON.stringify(docs));
+      setCaseDocuments(docs);
+    } catch (err) {
+      console.warn('[saveCaseDocuments] error:', err);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingFiles(true);
+    const promises = Array.from(files).map((file, idx) => {
+      return new Promise<{ id: string; name: string; url: string; size?: number }>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          resolve({
+            id: `img-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+            name: file.name,
+            url: event.target?.result as string,
+            size: file.size,
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(promises).then((results) => {
+      setNewDocImages((prev) => [...prev, ...results]);
+      setIsUploadingFiles(false);
+      showToast(`تمت إضافة ${results.length} صورة إلى المستند!`, "info");
+    });
+  };
+
+  const handleCreateDocument = (e: React.FormEvent) => {
+    e.preventDefault();
+    const quotaCheck = canPerformAction("upload_document");
+    if (!quotaCheck.allowed) {
+      showToast(quotaCheck.reason || "تم استنفاد السعة التخزينية المتاحة لباقتك.", "error");
+      return;
+    }
+
+    if (!newDocTitle.trim()) {
+      showToast("يرجى إدخال اسم أو عنوان المستند.", "error");
+      return;
+    }
+
+    if (newDocImages.length === 0) {
+      showToast("يرجى اختيار أو رفع صورة واحدة على الأقل للمستند.", "error");
+      return;
+    }
+
+    const newDoc = {
+      id: `doc-${Date.now()}`,
+      case_id: id || "",
+      title: newDocTitle.trim(),
+      category: newDocCategory,
+      notes: newDocNotes.trim(),
+      created_at: new Date().toISOString(),
+      images: newDocImages,
+    };
+
+    const updated = [newDoc, ...caseDocuments];
+    saveCaseDocuments(updated);
+
+    logAuditEvent({
+      action_type: "رفع مستند",
+      description: `رفع مستند جديد: "${newDoc.title}" (${newDoc.images.length} صور/صفحات) في القضية ${caseData?.case_number || ""}`,
+      status: "success",
+    });
+
+    showToast(`تم أرشفة وحفظ المستند "${newDoc.title}" بنجاح!`, "success");
+    setIsAddDocOpen(false);
+    setNewDocTitle("");
+    setNewDocCategory("حافظة مستندات");
+    setNewDocNotes("");
+    setNewDocImages([]);
+  };
+
+  const handleDeleteDocument = (docId: string, docTitle: string) => {
+    if (!confirm(`هل أنت متأكد من حذف المستند "${docTitle}" نهائياً من ملف القضية؟`)) return;
+
+    const updated = caseDocuments.filter((d) => d.id !== docId);
+    saveCaseDocuments(updated);
+
+    logAuditEvent({
+      action_type: "حذف مستند",
+      description: `تم حذف المستند "${docTitle}" من القضية ${caseData?.case_number || ""}`,
+      status: "warning",
+    });
+
+    if (activeViewingDoc?.id === docId) {
+      setActiveViewingDoc(null);
+    }
+    showToast(`تم حذف المستند بنجاح.`, "info");
+  };
+
+  const filteredDocuments = caseDocuments.filter((doc) => {
+    const matchesSearch =
+      docSearch === "" ||
+      doc.title.toLowerCase().includes(docSearch.toLowerCase()) ||
+      (doc.notes && doc.notes.toLowerCase().includes(docSearch.toLowerCase())) ||
+      doc.category.toLowerCase().includes(docSearch.toLowerCase());
+
+    const matchesCategory = docCategoryFilter === "all" || doc.category === docCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
   const loadAll = async () => {
     if (!id) return;
     try {
       setLoading(true);
+      loadCaseDocuments();
       const c = await apiClient.getCaseById(id);
       setCaseData(c);
 
@@ -180,6 +351,7 @@ export const CaseDetailPage: React.FC = () => {
 
   useEffect(() => {
     loadAll();
+    loadCaseDocuments();
     const unsubscribe = appStore.subscribe(() => {
       if (id) {
         const c = appStore.getCaseById(id);
@@ -190,6 +362,7 @@ export const CaseDetailPage: React.FC = () => {
         setPoliceReports(appStore.getPoliceReportsByCase(id));
         setContracts(appStore.getContracts(id));
         setExpenses(appStore.getExpenses(id));
+        loadCaseDocuments();
       }
     });
     return () => unsubscribe();
@@ -515,6 +688,10 @@ export const CaseDetailPage: React.FC = () => {
           <TabsTrigger value="expenses" className="gap-2 text-xs font-semibold py-2">
             <Receipt className="w-4 h-4 text-secondary" />
             المصروفات والماليات ({expenses.length})
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2 text-xs font-semibold py-2 bg-amber-500/10 text-amber-900 border border-amber-300/40">
+            <ImageIcon className="w-4 h-4 text-amber-600" />
+            المستندات والأوراق ({caseDocuments.length})
           </TabsTrigger>
         </TabsList>
 
@@ -956,6 +1133,190 @@ export const CaseDetailPage: React.FC = () => {
             </div>
           )}
         </TabsContent>
+
+        {/* TAB 7: DOCUMENTS & MULTI-PAGE PAPERS */}
+        <TabsContent value="documents" className="space-y-4 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-primary font-headline flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-amber-600" />
+                حوافظ المستندات والأوراق القضائية ({caseDocuments.length})
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                أرشفة الأوراق والمستندات وعرائض الدعاوى وإمكانية رفع عدة صور لنفس المستند وتصفحها بالكامل.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                setNewDocTitle("");
+                setNewDocCategory("حافظة مستندات");
+                setNewDocNotes("");
+                setNewDocImages([]);
+                setIsAddDocOpen(true);
+              }}
+              className="gap-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              رفع مستند أو حوافظ أوراق
+            </Button>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-slate-50 p-2.5 rounded-xl border border-border">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
+              <Input
+                placeholder="بحث باسم المستند أو ملاحظات الأوراق..."
+                value={docSearch}
+                onChange={(e) => setDocSearch(e.target.value)}
+                className="pr-9 h-9 text-xs bg-white"
+              />
+            </div>
+            <select
+              value={docCategoryFilter}
+              onChange={(e) => setDocCategoryFilter(e.target.value)}
+              className="h-9 px-3 rounded-lg border border-input bg-white text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="all">كافة أنواع المستندات</option>
+              <option value="حافظة مستندات">حافظة مستندات</option>
+              <option value="عريضة دعوى">عريضة دعوى / صحيفة استئناف</option>
+              <option value="حكم قضائي">صورة حكم قضائي</option>
+              <option value="توكيل ومستند رسمي">توكيل / مستند رسمي</option>
+              <option value="تقرير خبير">تقرير خبير / معاينة</option>
+              <option value="إيصال أو شيك">إيصال أمانة / شيك</option>
+              <option value="أوراق أخرى">أوراق ومذكرات أخرى</option>
+            </select>
+            {caseDocuments.length > 0 && (
+              <span className="text-xs text-muted-foreground whitespace-nowrap self-center px-1">
+                النتائج: {filteredDocuments.length} من {caseDocuments.length}
+              </span>
+            )}
+          </div>
+
+          {/* Documents Grid */}
+          {filteredDocuments.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDocuments.map((doc) => {
+                const coverImage = doc.images && doc.images.length > 0 ? doc.images[0].url : null;
+                const pageCount = doc.images ? doc.images.length : 0;
+
+                return (
+                  <Card key={doc.id} className="overflow-hidden border-border hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                      {/* Document Preview Header / Thumbnail */}
+                      <div
+                        onClick={() => {
+                          setActiveViewingDoc(doc);
+                          setViewingImageIdx(0);
+                        }}
+                        className="relative h-44 bg-slate-100 flex items-center justify-center cursor-pointer group overflow-hidden border-b border-border"
+                      >
+                        {coverImage ? (
+                          <img
+                            src={coverImage}
+                            alt={doc.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="text-slate-400 flex flex-col items-center gap-1">
+                            <ImageIcon className="w-8 h-8" />
+                            <span className="text-xs">لا توجد صور</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
+                          <Eye className="w-5 h-5" />
+                          <span className="text-xs font-bold">استعراض وتكبير ({pageCount} صور)</span>
+                        </div>
+                        <div className="absolute top-2 right-2">
+                          <Badge variant="default" className="text-[10px] bg-slate-900/80 text-white backdrop-blur-sm">
+                            {doc.category}
+                          </Badge>
+                        </div>
+                        <div className="absolute bottom-2 left-2">
+                          <span className="bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm flex items-center gap-1">
+                            <ImageIcon className="w-3 h-3" />
+                            {pageCount} {pageCount === 1 ? "صورة" : "صور / صفحات"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Content Info */}
+                      <div className="p-3.5 space-y-2">
+                        <h4 className="font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-1" title={doc.title}>
+                          {doc.title}
+                        </h4>
+                        {doc.notes && (
+                          <p className="text-xs text-muted-foreground line-clamp-2" title={doc.notes}>
+                            {doc.notes}
+                          </p>
+                        )}
+                        <div className="text-[11px] text-muted-foreground font-mono flex items-center justify-between pt-1 border-t border-slate-100">
+                          <span>أُضيف بتاريخ: {formatDate(doc.created_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-3 bg-slate-50 border-t border-border flex items-center justify-between gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setActiveViewingDoc(doc);
+                          setViewingImageIdx(0);
+                        }}
+                        className="text-xs font-semibold gap-1.5 h-8 flex-1"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-primary" />
+                        استعراض وتصفح
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteDocument(doc.id, doc.title)}
+                        className="text-xs text-destructive hover:bg-destructive/10 h-8 px-2"
+                        title="حذف المستند"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-10 text-center bg-white rounded-xl border border-dashed border-border space-y-3">
+              <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                <ImageIcon className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-foreground">
+                  {docSearch || docCategoryFilter !== "all"
+                    ? "لا توجد مستندات مطابقة لبحثك"
+                    : "لم يتم رفع أي مستندات أو حوافظ أوراق بعد"}
+                </h4>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  يمكنك رفع عرائض الدعاوى، صور الأحكام، حوافظ المستندات، والتقارير مع إمكانية رفع عدة صور للمستند الواحد وأرشفتها.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setNewDocTitle("");
+                  setNewDocCategory("حافظة مستندات");
+                  setNewDocNotes("");
+                  setNewDocImages([]);
+                  setIsAddDocOpen(true);
+                }}
+                className="gap-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                رفع أول مستند في القضية
+              </Button>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* 1. Add Session Dialog */}
@@ -1306,6 +1667,261 @@ export const CaseDetailPage: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* 6. Add Document Modal (Supports Multiple Images per Document) */}
+      <Dialog open={isAddDocOpen} onOpenChange={setIsAddDocOpen}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-amber-600" />
+              <span>أرشفة مستند جديد ورفع أوراقه (يدعم صور متعددة)</span>
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateDocument} className="space-y-4 py-2">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">
+                اسم أو عنوان المستند <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={newDocTitle}
+                onChange={(e) => setNewDocTitle(e.target.value)}
+                placeholder="مثال: عريضة الدعوى الرسمية، حافظة إيصالات، صورة الحكم المستأنف"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  تصنيف المستند
+                </label>
+                <select
+                  value={newDocCategory}
+                  onChange={(e) => setNewDocCategory(e.target.value)}
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-white text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="حافظة مستندات">حافظة مستندات</option>
+                  <option value="عريضة دعوى">عريضة دعوى / صحيفة استئناف</option>
+                  <option value="حكم قضائي">صورة حكم قضائي</option>
+                  <option value="توكيل ومستند رسمي">توكيل / مستند رسمي</option>
+                  <option value="تقرير خبير">تقرير خبير / معاينة</option>
+                  <option value="إيصال أو شيك">إيصال أمانة / شيك</option>
+                  <option value="أوراق أخرى">أوراق ومذكرات أخرى</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  ملاحظات أو رقم المستند بالملف
+                </label>
+                <Input
+                  value={newDocNotes}
+                  onChange={(e) => setNewDocNotes(e.target.value)}
+                  placeholder="ملاحظات توثيقية إضافية..."
+                />
+              </div>
+            </div>
+
+            {/* Multiple Images Upload Box */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-foreground">
+                  أوراق وصور المستند ({newDocImages.length} صور محددة) <span className="text-destructive">*</span>
+                </label>
+                <span className="text-[11px] text-muted-foreground">
+                  يمكنك تحديد واختيار عدة صور معاً
+                </span>
+              </div>
+
+              <label
+                htmlFor="case-doc-file-upload"
+                className="border-2 border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/40 hover:bg-amber-50 transition-colors rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer text-center group"
+              >
+                <Upload className="w-8 h-8 text-amber-600 group-hover:scale-110 transition-transform mb-2" />
+                <span className="text-xs font-bold text-foreground">
+                  {isUploadingFiles ? "جارٍ معالجة الصور..." : "اضغط هنا لاختيار صور الأوراق والمستندات"}
+                </span>
+                <span className="text-[11px] text-muted-foreground mt-0.5">
+                  يدعم رفع عدة صور (JPG, PNG, WEBP) لتوثيق صفحات العريضة أو المستند
+                </span>
+                <input
+                  id="case-doc-file-upload"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Previews of uploaded images */}
+              {newDocImages.length > 0 && (
+                <div className="pt-2">
+                  <span className="text-xs font-bold text-foreground block mb-2">
+                    الصور والصفحات المرفقة ({newDocImages.length}):
+                  </span>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-52 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-border">
+                    {newDocImages.map((img, idx) => (
+                      <div
+                        key={img.id}
+                        className="relative group rounded-lg overflow-hidden border border-border bg-white shadow-xs aspect-square"
+                      >
+                        <img
+                          src={img.url}
+                          alt={img.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-1 right-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          ص {idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setNewDocImages((prev) => prev.filter((_, i) => i !== idx))}
+                          className="absolute inset-0 bg-red-900/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          title="حذف هذه الصورة"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsAddDocOpen(false);
+                  setNewDocImages([]);
+                }}
+              >
+                إلغاء
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUploadingFiles || newDocImages.length === 0}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                حفظ وأرشفة المستند ({newDocImages.length} صور)
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 7. Document Multi-Page Lightbox Viewer */}
+      {activeViewingDoc && (
+        <Dialog open={!!activeViewingDoc} onOpenChange={(open) => !open && setActiveViewingDoc(null)}>
+          <DialogContent className="max-w-4xl max-h-[94vh] flex flex-col p-4 sm:p-6" dir="rtl">
+            <DialogHeader className="flex flex-row items-center justify-between pb-3 border-b border-border space-y-0">
+              <div className="space-y-0.5 text-right">
+                <div className="flex items-center gap-2">
+                  <DialogTitle className="text-base sm:text-lg font-bold text-foreground">
+                    {activeViewingDoc.title}
+                  </DialogTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {activeViewingDoc.category}
+                  </Badge>
+                </div>
+                {activeViewingDoc.notes && (
+                  <p className="text-xs text-muted-foreground">{activeViewingDoc.notes}</p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {activeViewingDoc.images[viewingImageIdx] && (
+                  <a
+                    href={activeViewingDoc.images[viewingImageIdx].url}
+                    download={activeViewingDoc.images[viewingImageIdx].name || `document-page-${viewingImageIdx + 1}.jpg`}
+                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-border hover:bg-slate-100 transition-colors"
+                    title="تحميل الصورة الحالية"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>تحميل</span>
+                  </a>
+                )}
+              </div>
+            </DialogHeader>
+
+            {/* Viewer Stage */}
+            <div className="relative flex-1 min-h-[350px] max-h-[62vh] flex items-center justify-center bg-slate-950 rounded-xl overflow-hidden my-3">
+              {activeViewingDoc.images && activeViewingDoc.images.length > 0 ? (
+                <>
+                  <img
+                    src={activeViewingDoc.images[viewingImageIdx].url}
+                    alt={`صفحة ${viewingImageIdx + 1}`}
+                    className="max-h-[60vh] max-w-full object-contain select-none"
+                  />
+
+                  {/* Navigation Arrows */}
+                  {activeViewingDoc.images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setViewingImageIdx((prev) =>
+                            prev > 0 ? prev - 1 : activeViewingDoc.images.length - 1
+                          )
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-colors shadow-lg"
+                        title="الصفحة السابقة"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setViewingImageIdx((prev) =>
+                            prev < activeViewingDoc.images.length - 1 ? prev + 1 : 0
+                          )
+                        }
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-colors shadow-lg"
+                        title="الصفحة التالية"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Page indicator pill */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/75 backdrop-blur-sm text-white text-xs font-mono px-3 py-1 rounded-full shadow">
+                    صفحة {viewingImageIdx + 1} من {activeViewingDoc.images.length}
+                  </div>
+                </>
+              ) : (
+                <div className="text-slate-400 text-xs">لا توجد صور في هذا المستند</div>
+              )}
+            </div>
+
+            {/* Bottom Strip of Thumbnails */}
+            {activeViewingDoc.images && activeViewingDoc.images.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto py-2 px-1 border-t border-border">
+                {activeViewingDoc.images.map((img, idx) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => setViewingImageIdx(idx)}
+                    className={`relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                      idx === viewingImageIdx
+                        ? "border-amber-500 scale-105 shadow-md"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0 right-0 left-0 bg-black/70 text-white text-[8px] font-bold text-center">
+                      {idx + 1}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

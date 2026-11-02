@@ -23,6 +23,8 @@ import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { useToast } from "../../components/common/Toast";
+import { logAuditEvent } from "../../lib/api/audit";
+import { getFirmQuotaStatus } from "../../lib/api/quotas";
 
 export const ClientFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -89,6 +91,15 @@ export const ClientFormPage: React.FC = () => {
       return;
     }
 
+    const quota = getFirmQuotaStatus();
+    if (quota.isSuspended) {
+      showToast(
+        "حساب المكتب معلق أو متأخر السداد حالياً. يرجى سداد الاشتراك أو التواصل مع الإدارة لإتاحة قيد وتعديل العمليات.",
+        "error"
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (isEdit && id) {
@@ -103,6 +114,13 @@ export const ClientFormPage: React.FC = () => {
           address: address.trim() || undefined,
           notes: notes.trim() || undefined,
         });
+
+        logAuditEvent({
+          action_type: "تعديل موكل",
+          description: `تم تعديل بيانات الموكل: "${fullName.trim()}"`,
+          status: "success",
+        });
+
         showToast("تم تحديث بيانات الموكل بنجاح", "success");
         navigate(`/firm/clients/${id}`);
       } else {
@@ -116,6 +134,12 @@ export const ClientFormPage: React.FC = () => {
           occupation: occupation.trim() || undefined,
           address: address.trim() || undefined,
           notes: notes.trim() || undefined,
+        });
+
+        logAuditEvent({
+          action_type: "إضافة موكل",
+          description: `إضافة موكل جديد بالدليل: "${fullName.trim()}" (${clientType === "individual" ? "فرد" : "شركة"})`,
+          status: "success",
         });
 
         // Add POA if requested
